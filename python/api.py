@@ -1,4 +1,5 @@
 import random
+
 from fastapi import Query, Depends, APIRouter
 from sqlalchemy import select, update, insert, delete  # noqa
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,10 +15,10 @@ data_api = APIRouter(prefix="/tree", tags=["管理树木实体"])
 
 @data_api.get("/q", response_model=Page[TreeSchema], summary="条件查询树木")
 async def query_trees(
-    s: AsyncSession = Depends(async_session),
-    pagination: Pagination = Depends(),
-    energy: int = Query(ge=0),
-):
+        s: AsyncSession = Depends(async_session),
+        pagination: Pagination = Depends(),
+        energy: int = Query(ge=0),
+        ):
     qs = select(Trees).where(Trees.energy >= energy).order_by("id")
     return await Page.create(s, qs, pagination)
 
@@ -28,15 +29,15 @@ async def query_tree(id: int, s: AsyncSession = Depends(async_session)):
     return OK(await s.scalar(qs))
 
 
-@data_api.post("/update", response_model=R[TreeSchema], summary="更新单个树木信息")
+@data_api.post("/update", summary="更新单个树木信息")
 async def update_tree(item: Item, s: AsyncSession = Depends(async_session)):
     qs = (
-        update(Trees)
-        .where(Trees.id == random.randint(1, 1000000))
-        .values(energy=item.energy)
-        .returning(Trees)
+            update(Trees)
+            .where(Trees.id == random.randint(1, 1000000))
+            .values(energy=item.energy)
     )
-    return OK(await s.scalar(qs))
+    await s.execute(qs)
+    return OK({"id": item.id})
 
     # qs = select(Trees).where(Trees.id == random.randint(1, 1000000))
     # obj = await s.scalar(qs)
