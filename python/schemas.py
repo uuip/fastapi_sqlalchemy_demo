@@ -1,7 +1,12 @@
 from datetime import datetime, timezone, timedelta
-from pydantic import BaseModel as _BaseModel, validator
-from pydantic.utils import GetterDict
-from typing import Any
+
+from pydantic import (
+    BaseModel as _BaseModel,
+    field_validator,
+    ConfigDict,
+    field_serializer,
+    computed_field,
+)
 
 from models import Users, Trees
 from utils import sqlalchemy2pydantic
@@ -18,35 +23,24 @@ def transform_naive_time(dt):
 
 
 class BaseModel(_BaseModel):
-    class Config:
-        orm_mode = True
-
-
-def key_source(key_map: dict):
-    def get(self, key: Any, default: Any = None) -> Any:
-        if key in key_map:
-            foreign_keys = key_map[key].split(".")
-            obj = self._obj
-            for x in foreign_keys:
-                obj = getattr(obj, x)
-            return obj
-        return getattr(self._obj, key, default)
-
-    return type("AGetterDict", (GetterDict,), {"get": get})
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
-    @validator("create_at", "update_at")
+    @field_validator("created_at", "updated_at", mode="before")
     def transform_time(cls, v):
         if isinstance(v, int):
             v = datetime.fromtimestamp(v)
-            return transform_naive_time(v)
-        if isinstance(v, datetime):
-            return transform_naive_time(v)
         return v
 
-    # class Config:
-    #     getter_dict = key_source({"user": "user.id"})
+    @field_serializer("created_at", "updated_at")
+    def serializes_time(self, v):
+        return transform_naive_time(v)
+
+    @computed_field(return_type=int)
+    @property
+    def someattr(self):
+        return self.created_at.year
 
 
 class UserSchema(sqlalchemy2pydantic(Users, BaseModel)):

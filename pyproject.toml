@@ -6,8 +6,8 @@ authors = ["uuip <uuip@users.noreply.github.com>"]
 readme = "README.md"
 
 [[tool.poetry.source]]
-name = "tuna"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
 priority = "default"
 
 [tool.poetry.dependencies]
@@ -15,14 +15,14 @@ python = "^3.10"
 wheel = ">=0.40.0"
 setuptools = ">=67.7.2"
 
-sqlalchemy = { version = ">=2.0.12", allow-prereleases = true }
-greenlet = ">=2.0.2"
-uvloop = "^0.17.0"
-fastapi = ">=0.95.1"
-uvicorn = ">=0.22.0"
+sqlalchemy = "^2.0.19"
+uvloop = { version = "^0.17.0", markers = "platform_system != 'Windows'" }
+fastapi = "^0.100.0"
+uvicorn = "^0.23.1"
 psycopg2 = "^2.9.6"
-asyncpg = ">=0.27.0"
-pydantic = { extras = ["dotenv"], version = ">=1.10.7" }
+asyncpg = "^0.28.0"
+pydantic = "^2.0.3"
+pydantic-settings = "^2.0.2"
 
 [build-system]
 requires = ["poetry-core"]
