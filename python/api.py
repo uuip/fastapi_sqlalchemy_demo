@@ -37,6 +37,7 @@ async def update_tree(item: Item, s: AsyncSession = Depends(async_session)):
             .values(energy=item.energy)
     )
     await s.execute(qs)
+    await s.commit()
     return OK({"id": item.id})
 
     # qs = select(Trees).where(Trees.id == random.randint(1, 1000000))
