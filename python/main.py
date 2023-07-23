@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
@@ -12,7 +13,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from api import data_api
 from response import ERROR, PARAM_ERROR
 from response.exceptions import BizException
-from utils import custom_openapi
 
 app = FastAPI(title="demo project")
 app.add_middleware(
@@ -59,15 +59,14 @@ def get_exc_loc(info: tuple) -> str:
 
 BizException.register(app)
 app.include_router(data_api)
-app.openapi = custom_openapi(app)
 
 if __name__ == "__main__":
     uvicorn.run(
             "main:app",
             host="0.0.0.0",
-            port=8000,
+            port=8001,
             reload=False,
             workers=os.cpu_count(),
-            loop="uvloop",
+            # loop="uvloop",
             log_level=logging.ERROR,
             )

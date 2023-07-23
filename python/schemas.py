@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-
+from zoneinfo import ZoneInfo
 from pydantic import (
     BaseModel as _BaseModel,
     field_validator,
@@ -11,7 +11,7 @@ from pydantic import (
 from models import Users, Trees
 from utils import sqlalchemy2pydantic
 
-sh = timezone(timedelta(hours=+8))
+sh = ZoneInfo('Asia/Shanghai')
 
 
 def transform_time(dt):
@@ -27,13 +27,13 @@ class BaseModel(_BaseModel):
 
 
 class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
-    @field_validator("created_at", "updated_at", mode="before")
+    @field_validator("created_at", "updated_at", mode="before", check_fields=False)
     def transform_time(cls, v):
         if isinstance(v, int):
             v = datetime.fromtimestamp(v)
         return v
 
-    @field_serializer("created_at", "updated_at")
+    @field_serializer("created_at", "updated_at", check_fields=False)
     def serializes_time(self, v):
         return transform_naive_time(v)
 

@@ -1,5 +1,6 @@
+from typing import Optional, ClassVar
+
 from pydantic import BaseModel
-from typing import Optional
 
 from .exceptions import BizException
 from .generic import R, T
@@ -9,7 +10,7 @@ class ERR(BaseModel):
     code: int
     msg: str
 
-    __all = dict()
+    __all: ClassVar = dict()
 
     def throw(self):
         """根据该错误码抛出一个异常交给上游捕获，相当于直接返回这个对象

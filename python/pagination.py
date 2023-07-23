@@ -1,5 +1,4 @@
 from pydantic import Field, BaseModel
-from pydantic.generics import GenericModel
 from sqlalchemy import select, func, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import TypeVar, Generic, Sequence
@@ -12,7 +11,7 @@ class Pagination(BaseModel):
     size: int = Field(default=10, description="页面容量")
 
 
-class Page(GenericModel, Generic[T]):
+class Page(BaseModel, Generic[T]):
     code: int = 200
     page: int = Field(1)
     size: int = Field(10)

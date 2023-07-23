@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 from urllib.parse import urlparse
 
 from pydantic import Field, model_validator
@@ -12,7 +11,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=_env_file, extra="ignore")
 
     db: str = Field(alias="db")
-    db_dict: Optional[dict]
+    db_dict: dict
 
     @model_validator(mode="before")
     def set_variant(cls, values: dict):
@@ -24,6 +23,7 @@ class Settings(BaseSettings):
             "user": c.username,
             "password": c.password,
         }
+        return values
 
 
 settings = Settings()
