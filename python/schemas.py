@@ -1,28 +1,21 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
+
 from pydantic import (
-    BaseModel as _BaseModel,
+    BaseModel,
     field_validator,
     ConfigDict,
     field_serializer,
     computed_field,
 )
 
-from models import Users, Trees
+from models import Trees
 from utils import sqlalchemy2pydantic
 
 sh = ZoneInfo('Asia/Shanghai')
 
 
-def transform_time(dt):
-    return dt.astimezone(sh).strftime("%Y-%m-%d %H:%M:%S +08:00")
-
-
-def transform_naive_time(dt):
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-
-class BaseModel(_BaseModel):
+class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -35,16 +28,12 @@ class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
 
     @field_serializer("created_at", "updated_at", check_fields=False)
     def serializes_time(self, v):
-        return transform_naive_time(v)
+        return v.strftime("%Y-%m-%d %H:%M:%S")
 
     @computed_field(return_type=int)
     @property
     def someattr(self):
         return self.created_at.year
-
-
-class UserSchema(sqlalchemy2pydantic(Users, BaseModel)):
-    ...
 
 
 class Item(BaseModel):
