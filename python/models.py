@@ -11,7 +11,7 @@ INITFLAG = False
 
 class Users(AutoBase):
     __tablename__ = "users"
-    trees_collection = relationship("Trees", back_populates="user", lazy="selectin")
+    trees_collection = relationship("Trees", back_populates="user")
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id} {self.name}>"
@@ -19,7 +19,7 @@ class Users(AutoBase):
 
 class Trees(AutoBase):
     __tablename__ = "trees"
-    user = relationship("Users", back_populates="trees_collection", lazy="selectin", overlaps="users")
+    user = relationship("Users", back_populates="trees_collection", overlaps="users")
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}>"

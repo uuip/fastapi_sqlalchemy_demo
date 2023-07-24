@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import time
@@ -14,7 +15,15 @@ from api import data_api
 from response import ERROR, PARAM_ERROR
 from response.exceptions import BizException
 
-app = FastAPI(title="demo project")
+
+@contextlib.asynccontextmanager
+async def task(app):
+    print("Run at startup!")
+    yield
+    print("Run on shutdown!")
+
+
+app = FastAPI(title="demo project", lifespan=task)
 app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -27,16 +36,6 @@ app.add_middleware(
 @app.get("/time")
 async def gettime() -> int:
     return int(time.time())
-
-
-@app.on_event("startup")
-async def startup_event():
-    ...
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    ...
 
 
 @app.exception_handler(RequestValidationError)
@@ -68,5 +67,5 @@ if __name__ == "__main__":
             reload=False,
             workers=os.cpu_count(),
             # loop="uvloop",
-            log_level=logging.ERROR,
+            log_level=logging.INFO,
             )
