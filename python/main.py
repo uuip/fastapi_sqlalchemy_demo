@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from api import data_api
 from response import ERROR, PARAM_ERROR
-from response.exceptions import BizException
+from response.exceptions import ApiException
 
 
 @contextlib.asynccontextmanager
@@ -56,7 +56,7 @@ def get_exc_loc(info: tuple) -> str:
         return info[0]
 
 
-BizException.register(app)
+ApiException.register(app)
 app.include_router(data_api)
 
 if __name__ == "__main__":
@@ -66,6 +66,5 @@ if __name__ == "__main__":
             port=8001,
             reload=False,
             workers=os.cpu_count(),
-            # loop="uvloop",
             log_level=logging.INFO,
             )

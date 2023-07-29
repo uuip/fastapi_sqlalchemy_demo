@@ -1,7 +1,8 @@
-from pydantic import Field, BaseModel
-from sqlalchemy import select, func, Select
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import TypeVar, Generic, Sequence
+
+from pydantic import Field, BaseModel, conint
+from sqlalchemy import Select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 T = TypeVar("T")
 
@@ -13,9 +14,9 @@ class Pagination(BaseModel):
 
 class Page(BaseModel, Generic[T]):
     code: int = 200
-    page: int = Field(1)
-    size: int = Field(10)
-    total: int = Field(0)
+    page: conint(ge=1)
+    size: conint(ge=1)
+    total: conint(ge=0)
     data: Sequence[T]
 
     @classmethod

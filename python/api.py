@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db import async_session
 from models import Trees
 from pagination import Page, Pagination
-from response import OK, R
+from response import OK, R, ApiException, ERROR
 from schemas import TreeSchema, Item
 
 data_api = APIRouter(prefix="/tree", tags=["管理树木实体"])
@@ -15,10 +15,10 @@ data_api = APIRouter(prefix="/tree", tags=["管理树木实体"])
 
 @data_api.get("/q", response_model=Page[TreeSchema], summary="条件查询树木")
 async def query_trees(
-        s: AsyncSession = Depends(async_session),
-        pagination: Pagination = Depends(),
-        energy: int = Query(ge=0),
-        ):
+    s: AsyncSession = Depends(async_session), pagination: Pagination = Depends(), energy: int = Query(ge=0)
+):
+    if energy == 0:
+        raise ApiException(ERROR.excinfo("demo error"))
     qs = select(Trees).where(Trees.energy >= energy).order_by("id")
     return await Page.create(s, qs, pagination)
 
@@ -31,11 +31,7 @@ async def query_tree(id: int, s: AsyncSession = Depends(async_session)):
 
 @data_api.post("/update", summary="更新单个树木信息")
 async def update_tree(item: Item, s: AsyncSession = Depends(async_session)):
-    qs = (
-            update(Trees)
-            .where(Trees.id == random.randint(1, 1000000))
-            .values(energy=item.energy)
-    )
+    qs = update(Trees).where(Trees.id == random.randint(1, 1000000)).values(energy=item.energy)
     await s.execute(qs)
     await s.commit()
     return OK({"id": item.id})
