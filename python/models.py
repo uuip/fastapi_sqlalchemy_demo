@@ -2,7 +2,7 @@ from sqlalchemy import *
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import *
 
-from python.settings import settings
+from settings import settings
 
 
 class Base(DeclarativeBase):

@@ -1,6 +1,8 @@
+from typing import TypeAlias, Annotated
 from urllib.parse import urlparse
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from settings import settings
 
@@ -12,3 +14,6 @@ asessionmaker = async_sessionmaker(bind=async_db)
 async def async_session():
     async with asessionmaker() as s:
         yield s
+
+
+DBDep: TypeAlias = Annotated[AsyncSession, Depends(async_session)]

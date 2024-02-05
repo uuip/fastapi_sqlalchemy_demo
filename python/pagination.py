@@ -1,5 +1,6 @@
-from typing import TypeVar, Generic, Sequence
+from typing import TypeVar, Generic, Sequence, TypeAlias, Annotated
 
+from fastapi import Depends
 from pydantic import Field, BaseModel, conint
 from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,3 +32,6 @@ class Page(BaseModel, Generic[T]):
             page=page,
             size=size,
         )
+
+
+PageDep: TypeAlias = Annotated[Pagination, Depends()]

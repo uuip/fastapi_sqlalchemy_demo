@@ -7,12 +7,13 @@ from pydantic import (
     ConfigDict,
     field_serializer,
     computed_field,
-)
+    )
 
 from models import Trees
+from settings import timezone
 from utils import sqlalchemy2pydantic
 
-sh = ZoneInfo('Asia/Shanghai')
+tz = ZoneInfo(timezone)
 
 
 class BaseSchema(BaseModel):
@@ -26,14 +27,14 @@ class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
             v = datetime.fromtimestamp(v)
         return v
 
-    @field_serializer("created_at", "updated_at", check_fields=False)
-    def serializes_time(self, v):
-        return v.strftime("%Y-%m-%d %H:%M:%S")
+    @field_serializer("created_at", "updated_at")
+    def serializes_time(self, v: datetime):
+        return v.astimezone(tz).strftime("%Y-%m-%d %H:%M:%S%z")
 
     @computed_field(return_type=int)
     @property
     def someattr(self):
-        return self.created_at.year
+        return self.created_at.astimezone(tz).year
 
 
 class Item(BaseModel):
