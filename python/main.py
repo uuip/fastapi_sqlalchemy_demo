@@ -25,12 +25,12 @@ async def task(app):
 
 app = FastAPI(title="demo project", lifespan=task)
 app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=False,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        )
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/time")
@@ -61,10 +61,10 @@ app.include_router(data_api)
 
 if __name__ == "__main__":
     uvicorn.run(
-            "main:app",
-            host="0.0.0.0",
-            port=8001,
-            reload=False,
-            workers=os.cpu_count(),
-            log_level=logging.INFO,
-            )
+        "main:app",
+        host="0.0.0.0",
+        port=8001,
+        reload=False,
+        workers=os.cpu_count(),
+        log_level=logging.INFO,
+    )

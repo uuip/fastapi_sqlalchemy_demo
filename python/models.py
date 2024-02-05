@@ -1,30 +1,33 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.automap import automap_base
+from sqlalchemy import *
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import *
 
-from settings import settings
-
-db = create_engine(settings.db, echo=False)
-AutoBase = automap_base()
-INITFLAG = False
+from python.settings import settings
 
 
-class Users(AutoBase):
-    __tablename__ = "users"
-    trees_collection = relationship("Trees", back_populates="user")
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__} {self.id} {self.name}>"
+class Base(DeclarativeBase):
+    pass
 
 
-class Trees(AutoBase):
+class Trees(Base):
     __tablename__ = "trees"
-    user = relationship("Users", back_populates="trees_collection", overlaps="users")
+    id = mapped_column(BigInteger, Identity(), primary_key=True)
+    energy = mapped_column(BigInteger)
+    updated_at = mapped_column(
+        TIMESTAMP(timezone=True, precision=0),
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
+    created_at = mapped_column(
+        TIMESTAMP(timezone=True, precision=0),
+        server_default=func.current_timestamp(),
+    )
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.id}>"
 
 
-if not INITFLAG:
-    AutoBase.prepare(autoload_with=db)
-    INITFLAG = True
+if __name__ == "__main__":
+    db = create_engine(settings.db)
+    Session = sessionmaker(bind=db)
+    Base.metadata.create_all(bind=db)
