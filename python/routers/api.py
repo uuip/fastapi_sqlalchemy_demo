@@ -3,13 +3,12 @@ from typing import Annotated
 from fastapi import Query, APIRouter
 from sqlalchemy import select, update, insert, delete  # noqa
 
-from db import DBDep
+from dependencies import DBDep, Page, PageDep, UserDep
 from models import Trees
-from pagination import Page, PageDep
 from response import OK, Rsp, ApiException
 from schemas import TreeSchema, Item
 
-data_api = APIRouter(prefix="/tree", tags=["管理树木实体"])
+data_api = APIRouter(prefix="/tree", dependencies=[UserDep], tags=["管理树木实体"])
 
 
 @data_api.get("/q", response_model=Page[TreeSchema], summary="条件查询树木")

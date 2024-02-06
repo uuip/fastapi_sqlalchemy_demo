@@ -42,3 +42,7 @@ class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
 class Item(BaseModel):
     id: int
     energy: int
+
+
+class UserSchema(BaseModel):
+    username: str

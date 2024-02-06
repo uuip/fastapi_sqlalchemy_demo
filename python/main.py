@@ -10,9 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from api import data_api
 from response import ERROR
 from response.exceptions import ApiException
+from routers.api import data_api
+from routers.auth import token
 
 
 @contextlib.asynccontextmanager
@@ -31,19 +32,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(data_api)
+app.include_router(token)
 
 ApiException.register(app)
 
 
 @app.exception_handler(RequestValidationError)
-async def handle_params_error(requset: Request, exc: RequestValidationError):
+async def handle_params_error(requset: Request, exc):
     detail = "; ".join([get_exc_loc(x["loc"]) + ": " + x["msg"] for x in exc.errors()])
     return JSONResponse(ERROR(detail).model_dump())
 
 
 @app.exception_handler(SQLAlchemyError)
-async def handle_orm_error(request: Request, exc: SQLAlchemyError):
-    return JSONResponse(ERROR(exc.args).model_dump())
+async def handle_orm_error(request: Request, exc):
+    return JSONResponse(ERROR(". ".join(exc.args)).model_dump())
 
 
 def get_exc_loc(info: tuple) -> str:
