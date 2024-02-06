@@ -29,5 +29,4 @@ class Trees(Base):
 
 if __name__ == "__main__":
     db = create_engine(settings.db)
-    Session = sessionmaker(bind=db)
     Base.metadata.create_all(bind=db)

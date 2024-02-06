@@ -21,8 +21,10 @@ class BaseSchema(BaseModel):
 
 
 class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
-    @field_validator("created_at", "updated_at", mode="before", check_fields=False)
-    def transform_time(cls, v):
+
+    @field_validator("created_at", "updated_at", mode="before")
+    @classmethod
+    def transform_time(cls, v) -> datetime:
         if isinstance(v, int):
             v = datetime.fromtimestamp(v)
         return v
@@ -31,9 +33,9 @@ class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
     def serializes_time(self, v: datetime):
         return v.astimezone(tz).strftime("%Y-%m-%d %H:%M:%S%z")
 
-    @computed_field(return_type=int)
+    @computed_field
     @property
-    def someattr(self):
+    def someattr(self) -> int:
         return self.created_at.astimezone(tz).year
 
 

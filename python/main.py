@@ -5,14 +5,13 @@ import time
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from api import data_api
-from response import ERROR, PARAM_ERROR
+from response import ERROR
 from response.exceptions import ApiException
 
 
@@ -31,22 +30,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(data_api)
 
-
-@app.get("/time")
-async def gettime() -> int:
-    return int(time.time())
+ApiException.register(app)
 
 
 @app.exception_handler(RequestValidationError)
 async def handle_params_error(requset: Request, exc: RequestValidationError):
     detail = "; ".join([get_exc_loc(x["loc"]) + ": " + x["msg"] for x in exc.errors()])
-    return JSONResponse(jsonable_encoder(PARAM_ERROR(detail)))
+    return JSONResponse(ERROR(detail).model_dump())
 
 
 @app.exception_handler(SQLAlchemyError)
 async def handle_orm_error(request: Request, exc: SQLAlchemyError):
-    return JSONResponse(jsonable_encoder(ERROR(exc.args)))
+    return JSONResponse(ERROR(exc.args).model_dump())
 
 
 def get_exc_loc(info: tuple) -> str:
@@ -56,8 +53,10 @@ def get_exc_loc(info: tuple) -> str:
         return info[0]
 
 
-ApiException.register(app)
-app.include_router(data_api)
+@app.get("/time")
+async def simpledemo() -> int:
+    return int(time.time())
+
 
 if __name__ == "__main__":
     uvicorn.run(

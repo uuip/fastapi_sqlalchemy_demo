@@ -6,7 +6,7 @@ from sqlalchemy import select, update, insert, delete  # noqa
 from db import DBDep
 from models import Trees
 from pagination import Page, PageDep
-from response import OK, R, ApiException, ERROR
+from response import OK, Rsp, ApiException
 from schemas import TreeSchema, Item
 
 data_api = APIRouter(prefix="/tree", tags=["管理树木实体"])
@@ -15,12 +15,12 @@ data_api = APIRouter(prefix="/tree", tags=["管理树木实体"])
 @data_api.get("/q", response_model=Page[TreeSchema], summary="条件查询树木")
 async def query_trees(energy: Annotated[int, Query(ge=0)], s: DBDep, pagination: PageDep):
     if energy == 0:
-        raise ApiException(ERROR.excinfo("demo error"))
+        raise ApiException("demo error")
     qs = select(Trees).where(Trees.energy >= energy).order_by("id")
     return await Page.create(s, qs, pagination)
 
 
-@data_api.get("/{id}", response_model=R[TreeSchema], response_model_by_alias=False, summary="查询单个树木")
+@data_api.get("/{id}", response_model=Rsp[TreeSchema], response_model_by_alias=False, summary="查询单个树木")
 async def query_tree(id: int, s: DBDep):
     qs = select(Trees).where(Trees.id == id)
     return OK(await s.scalar(qs))

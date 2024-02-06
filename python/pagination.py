@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Sequence, TypeAlias, Annotated
+from typing import TypeVar, Generic, Sequence, TypeAlias, Annotated, Self
 
 from fastapi import Depends
 from pydantic import Field, BaseModel, conint
@@ -21,7 +21,7 @@ class Page(BaseModel, Generic[T]):
     data: Sequence[T]
 
     @classmethod
-    async def create(cls, s: AsyncSession, qs: Select, pagination: Pagination) -> "Page[T]":
+    async def create(cls, s: AsyncSession, qs: Select, pagination: Pagination) -> Self:
         size = pagination.size
         page = pagination.page
         data = await s.scalars(qs.limit(size).offset(page * size - size))
