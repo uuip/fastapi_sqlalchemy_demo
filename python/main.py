@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
+import routers.docs  # noqa
 from response import ERROR
 from response.exceptions import ApiException
 from routers.api import data_api
@@ -23,7 +24,7 @@ async def task(app):
     print("Run on shutdown!")
 
 
-app = FastAPI(title="demo project", lifespan=task)
+app = FastAPI(title="demo project", lifespan=task, docs_url=None, redoc_url=None, openapi_url=None)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
