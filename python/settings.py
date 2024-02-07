@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=_env_file, extra="ignore")
 
     db: str = Field(alias="db_url")
+    debug: bool = Field(True)
 
     @computed_field(return_type=dict)
     @cached_property

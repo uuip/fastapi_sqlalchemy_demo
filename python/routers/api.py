@@ -5,10 +5,12 @@ from sqlalchemy import select, update, func
 
 from dependencies import DBDep, Page, PageDep, user_dep, UserDep
 from models import Trees
-from response import OK, Rsp, ApiException
+from response import OK, Rsp, ApiException, ErrRsp
 from schemas import TreeSchema, Item
 
-data_api = APIRouter(prefix="/tree", dependencies=[user_dep], tags=["管理树木实体"])
+# 指定当http状态码==422时，返回ErrRsp模型；使docs正确渲染
+responses = {400: {"model": ErrRsp}}
+data_api = APIRouter(prefix="/tree", dependencies=[user_dep], tags=["管理树木实体"], responses=responses)
 
 
 @data_api.get("/q", response_model=Page[TreeSchema], summary="条件查询树木")

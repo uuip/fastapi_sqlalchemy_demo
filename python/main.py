@@ -10,11 +10,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-import routers.docs  # noqa
 from response import ERROR
 from response.exceptions import ApiException
 from routers.api import data_api
 from routers.auth import token
+from settings import settings
 
 
 @contextlib.asynccontextmanager
@@ -24,7 +24,13 @@ async def task(app):
     print("Run on shutdown!")
 
 
-app = FastAPI(title="demo project", lifespan=task, docs_url=None, redoc_url=None, openapi_url=None)
+if settings.debug:
+    app = FastAPI(title="demo project", lifespan=task)
+else:
+    import routers.docs  # noqa
+
+    app = FastAPI(title="demo project", lifespan=task, docs_url=None, redoc_url=None, openapi_url=None)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -41,12 +47,12 @@ ApiException.register(app)
 @app.exception_handler(RequestValidationError)
 async def handle_params_error(requset: Request, exc):
     detail = "; ".join([get_exc_loc(x["loc"]) + ": " + x["msg"] for x in exc.errors()])
-    return JSONResponse(ERROR(detail).model_dump())
+    return JSONResponse(ERROR(detail).model_dump(), status_code=400)
 
 
 @app.exception_handler(SQLAlchemyError)
 async def handle_orm_error(request: Request, exc):
-    return JSONResponse(ERROR(". ".join(exc.args)).model_dump())
+    return JSONResponse(ERROR(". ".join(exc.args)).model_dump(), status_code=500)
 
 
 def get_exc_loc(info: tuple) -> str:
