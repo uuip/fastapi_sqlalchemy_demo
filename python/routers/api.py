@@ -1,14 +1,14 @@
 from typing import Annotated
 
 from fastapi import Query, APIRouter
-from sqlalchemy import select, update, insert, delete  # noqa
+from sqlalchemy import select, update, func
 
-from dependencies import DBDep, Page, PageDep, UserDep
+from dependencies import DBDep, Page, PageDep, user_dep, UserDep
 from models import Trees
 from response import OK, Rsp, ApiException
 from schemas import TreeSchema, Item
 
-data_api = APIRouter(prefix="/tree", dependencies=[UserDep], tags=["管理树木实体"])
+data_api = APIRouter(prefix="/tree", dependencies=[user_dep], tags=["管理树木实体"])
 
 
 @data_api.get("/q", response_model=Page[TreeSchema], summary="条件查询树木")
@@ -26,11 +26,14 @@ async def query_tree(id: int, s: DBDep):
 
 
 @data_api.post("/update", summary="更新单个树木信息")
-async def update_tree(item: Item, s: DBDep):
+async def update_tree(item: Item, s: DBDep, user: UserDep):
+    print(id(s), type(s), update_tree)
     qs = update(Trees).where(Trees.id == item.id).values(energy=item.energy)
     await s.execute(qs)
+    user.updated_at = func.current_timestamp()
+    operator = user.username
     await s.commit()
-    return OK({"id": item.id})
+    return OK({"id": item.id, "operator": operator})
 
     # return OK(obj)
     # return JSONResponse(status_code=status.HTTP_201_CREATED, content=item)

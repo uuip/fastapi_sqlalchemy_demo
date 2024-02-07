@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime, timezone
+from typing import TypeAlias, Annotated
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -6,18 +7,22 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from models import User
-from .db import asessionmaker
+from .db import DBDep
 
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_DAYS = 30
 # openssl rand -hex 32
 SECRET_KEY = "ffe4145185fa7e499999592324c1fec9f01d17a595747d3442048846852f25b3"
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # pwd_context = CryptContext(schemes=["bcrypt"])
 pwd_context = CryptContext(schemes=["django_pbkdf2_sha256"])
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+auth_dep = Depends(oauth2_scheme)
+AuthDep: TypeAlias = Annotated[str | None, Depends(oauth2_scheme)]
 
 
 class Token(BaseModel):
@@ -33,16 +38,15 @@ def make_password(password):
     return pwd_context.hash(password)
 
 
-async def get_user_from_db(username: str | None = None, id: int | None = None):
-    async with asessionmaker() as s:
-        if id:
-            return await s.scalar(select(User).where(User.id == id))
-        if username:
-            return await s.scalar(select(User).where(User.username == username))
+async def get_user_from_db(s: AsyncSession, username: str | None = None, id: int | None = None):
+    if id:
+        return await s.scalar(select(User).where(User.id == id))
+    if username:
+        return await s.scalar(select(User).where(User.username == username))
 
 
-async def authenticate_user(username, password):
-    user = await get_user_from_db(username)
+async def authenticate_user(s: AsyncSession, username, password):
+    user = await get_user_from_db(s, username)
     if not user:
         return False
     valid_user = verify_password(password, user.password)
@@ -62,7 +66,7 @@ def create_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: AuthDep, s: DBDep) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -78,11 +82,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             ...
     except JWTError:
         raise credentials_exception
-    user = await get_user_from_db(id=user_id)
+    user = await get_user_from_db(s, id=user_id)
     if user is None:
         raise credentials_exception
     return user
 
 
-AuthDep = Depends(oauth2_scheme)
-UserDep = Depends(get_current_user)
+# 对象, dependencies=[...]
+user_dep = Depends(get_current_user)
+# 声明类型，函数中参数定义
+UserDep: TypeAlias = Annotated[User, Depends(get_current_user)]
