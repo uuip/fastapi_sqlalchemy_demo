@@ -8,3 +8,4 @@
 * Pydantic序列化示例<br> [schemas.py](python/schemas.py)
 * .env支持<br> [settings.py](python/settings.py)
 * docs路径添加认证 -- 原版没有<br> [routers/docs.py](python/routers/docs.py)
+* migrations<br> [README.md](python/migrations/README.md)
