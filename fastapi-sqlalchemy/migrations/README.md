@@ -4,11 +4,14 @@ alembic init migrations
 ```
 
 ## 编辑env.py
+
 ```python
-from models import Base
+from model import Base
+
 target_metadata = Base.metadata
 
-from settings import settings
+from config import settings
+
 config.set_main_option('sqlalchemy.url', settings.db)
 ```
 

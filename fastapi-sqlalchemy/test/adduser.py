@@ -2,8 +2,8 @@ from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import sessionmaker
 
 from deps.authorization import make_password
-from models import User
-from settings import settings
+from model import User
+from config import settings
 
 db = create_engine(settings.db)
 Session = sessionmaker(bind=db)

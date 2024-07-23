@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from models import User
+from model import User
 from .db import SessionDep
 
 ALGORITHM = "HS256"

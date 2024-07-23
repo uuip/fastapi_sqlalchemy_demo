@@ -4,9 +4,9 @@ from fastapi import Query, APIRouter
 from sqlalchemy import select, update, func
 
 from deps import SessionDep, Page, PageDep, user_dep, UserDep
-from models import Trees
+from model import Trees
 from response import OK, Rsp, ApiException
-from schemas import TreeSchema, Item
+from schema import TreeSchema, Item
 
 data_api = APIRouter(prefix="/tree", dependencies=[user_dep], tags=["管理树木实体"])
 

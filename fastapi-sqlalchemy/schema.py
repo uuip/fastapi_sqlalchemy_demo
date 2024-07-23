@@ -9,8 +9,8 @@ from pydantic import (
     computed_field,
     )
 
-from models import Trees
-from settings import timezone
+from model import Trees
+from config import timezone
 from utils import sqlalchemy2pydantic
 
 tz = ZoneInfo(timezone)

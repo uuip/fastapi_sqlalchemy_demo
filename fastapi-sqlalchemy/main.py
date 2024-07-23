@@ -12,9 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from response import ERROR, ErrRsp
 from response.exceptions import ApiException
-from routers.api import data_api
-from routers.auth import token
-from settings import settings
+from api.tree import data_api
+from api.auth import token
+from config import settings
 from utils import custom_openapi
 
 
@@ -30,7 +30,7 @@ responses = {400: {"model": ErrRsp}}
 if settings.debug:
     kwargs = {}
 else:
-    import routers.docs  # noqa
+    import api.docs  # noqa
 
     kwargs = dict(docs_url=None, redoc_url=None, openapi_url=None)
 app = FastAPI(title="demo project", lifespan=task, responses=responses, **kwargs)
