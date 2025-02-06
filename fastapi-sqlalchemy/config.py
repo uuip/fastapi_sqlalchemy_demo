@@ -6,7 +6,6 @@ from pydantic import *
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
 _env_file = Path(__file__).parent / ".env"
-timezone = "Asia/Shanghai"
 
 
 class Settings(BaseSettings):

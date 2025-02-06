@@ -10,10 +10,9 @@ from pydantic import (
     )
 
 from model import Trees
-from config import timezone
 from utils import sqlalchemy2pydantic
 
-tz = ZoneInfo(timezone)
+tz = ZoneInfo("Asia/Shanghai")
 
 
 class BaseSchema(BaseModel):

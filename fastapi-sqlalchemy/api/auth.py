@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
@@ -11,7 +12,7 @@ token = APIRouter(prefix="/token", tags=["token管理"])
 
 
 @token.post("/")
-async def login(s: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login(s: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = await authenticate_user(s, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
