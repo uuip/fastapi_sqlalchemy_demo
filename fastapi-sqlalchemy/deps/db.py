@@ -1,7 +1,8 @@
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from typing import TypeAlias, Annotated
 from urllib.parse import urlparse
+
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from config import settings
 

@@ -1,6 +1,5 @@
 import contextlib
 import logging
-import os
 import time
 
 import uvicorn
@@ -8,13 +7,16 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqladmin import Admin
 from sqlalchemy.exc import SQLAlchemyError
 
+from adminsite import UserAdmin, authentication_backend
+from api.auth import token_api
+from api.tree import data_api
+from config import settings
+from deps.db import async_db
 from response import ERROR, ErrRsp
 from response.exceptions import ApiException
-from api.tree import data_api
-from api.auth import token
-from config import settings
 from utils import custom_openapi
 
 
@@ -36,6 +38,8 @@ else:
 app = FastAPI(title="demo project", lifespan=task, responses=responses, **kwargs)
 custom_openapi(app)
 
+admin = Admin(app, async_db, authentication_backend=authentication_backend)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -44,9 +48,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(data_api)
-app.include_router(token)
+app.include_router(token_api)
 
 ApiException.register(app)
+
+admin.add_view(UserAdmin)
 
 
 @app.exception_handler(RequestValidationError)
@@ -78,6 +84,6 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=False,
-        workers=os.cpu_count(),
+        workers=2,
         log_level=logging.INFO,
     )

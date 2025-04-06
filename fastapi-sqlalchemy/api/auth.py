@@ -1,25 +1,31 @@
 from datetime import timedelta
-from typing import Annotated
 
-from fastapi import Depends, HTTPException, APIRouter
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import HTTPException, APIRouter
+from fastapi.security import HTTPBasicCredentials
+from sqlalchemy import select
 from starlette import status
 
-from deps import Token, SessionDep
-from deps.authorization import authenticate_user, create_token
+from core.token import create_token, Token
+from deps import SessionDep
+from model import User
+from response import Rsp, OK
 
-token = APIRouter(prefix="/token", tags=["token管理"])
+token_api = APIRouter(prefix="/token", tags=["token管理"])
 
 
-@token.post("/")
-async def login(s: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user = await authenticate_user(s, form_data.username, form_data.password)
+@token_api.post("/", response_model=Rsp[Token])
+async def login(s: SessionDep, data: HTTPBasicCredentials) -> Token:
+    e = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    user = await s.scalar(select(User).where(User.username == data.username))
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise e
+    user_status = user.check_password(data.password)
+    if not user_status:
+        raise e
     token_expires = timedelta(days=30)
     token = create_token(data={"id": user.id}, expires_delta=token_expires)
-    return Token(access_token=token, token_type="bearer")
+    return OK(token)

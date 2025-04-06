@@ -8,4 +8,4 @@ dependencies=[...]
 ## 类型
 
 def update(db: DBDep)
-函数定义中是类型标注，Annotated[User, Depends(get_current_user)]
+函数定义中是类型标注，Annotated[User, Depends(authenticate)]

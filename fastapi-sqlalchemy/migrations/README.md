@@ -1,4 +1,5 @@
 ## 生成 alembic 目录
+
 ```shell
 alembic init migrations
 ```
@@ -23,11 +24,13 @@ def load_module(paths: list, prefix=""):
 ```
 
 ## 生成模型变动
+
 ```shell
 alembic revision --autogenerate
 ```
 
 ## 应用
+
 ```shell
 alembic upgrade head
 ```
