@@ -54,7 +54,18 @@ ApiException.register(app)
 
 admin.add_view(UserAdmin)
 
-
+# @app.middleware("http")
+# async def request_body_fix(request: Request, call_next):
+#     if request.method in {"POST", "PUT", "PATCH"}:
+#
+#         body_bytes = await request.body()
+#         try:
+#             body_json = json.loads(body_bytes)
+#             logger.info("请求体: {}", body_json)
+#         except json.JSONDecodeError:
+#             logger.info(f"请求体(非 JSON)")
+#
+#     return await call_next(request)
 @app.exception_handler(RequestValidationError)
 async def handle_params_error(requset: Request, exc):
     detail = "; ".join([get_exc_loc(x["loc"]) + ": " + x["msg"] for x in exc.errors()])
