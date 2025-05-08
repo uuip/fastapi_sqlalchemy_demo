@@ -5,27 +5,36 @@ from fastapi.security import HTTPBasicCredentials
 from sqlalchemy import select
 from starlette import status
 
+from config import settings
 from core.token import create_token, Token
 from deps import SessionDep
 from model import User
 from response import Rsp, OK
 
-token_api = APIRouter(prefix="/token", tags=["token管理"])
+token_api = APIRouter(prefix="/token", tags=["Token Management"])
 
 
-@token_api.post("/", response_model=Rsp[Token])
-async def login(s: SessionDep, data: HTTPBasicCredentials) -> Token:
-    e = HTTPException(
+@token_api.post(
+    "/",
+    response_model=Rsp[Token],
+    summary="Login and get access token",
+    description="Authenticate with username and password to receive a JWT token",
+)
+async def login(s: SessionDep, credentials: HTTPBasicCredentials) -> Rsp[Token]:
+    auth_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Incorrect username or password",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    user = await s.scalar(select(User).where(User.username == data.username))
+
+    user = await s.scalar(select(User).where(User.username == credentials.username))
     if not user:
-        raise e
-    user_status = user.check_password(data.password)
-    if not user_status:
-        raise e
-    token_expires = timedelta(days=30)
+        raise auth_exception
+
+    if not user.check_password(credentials.password):
+        raise auth_exception
+
+    token_expires = timedelta(days=settings.jwt_expire_days)
     token = create_token(data={"id": user.id}, expires_delta=token_expires)
+
     return OK(token)

@@ -1,4 +1,4 @@
-from typing import TypeAlias, Annotated
+from typing import TypeAlias, Annotated, Dict, Any
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -20,19 +20,19 @@ async def authenticate(s: SessionDep, token: TokenDep) -> User:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
-        payload = decode_token(token)
-        user_id: str = payload.get("id")
+        payload: Dict[str, Any] = decode_token(token.credentials)
+        user_id = payload.get("id")
         if user_id is None:
             raise credentials_exception
-        else:
-            # do something
-            ...
     except JWTError:
         raise credentials_exception
+
     user = await s.scalar(select(User).where(User.id == user_id))
     if user is None:
         raise credentials_exception
+
     return user
 
 
