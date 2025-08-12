@@ -28,6 +28,19 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def include_object(object, name, type_, reflected, compare_to):
+    """
+    当 type_ == 'table' 且 reflected==True 且 compare_to is None 时，
+    表示该表存在于数据库但在 models/metadata 中不存在。
+    返回 False 则在 autogenerate 时忽略该对象（不会生成 drop table）。
+    """
+    if type_ == "table":
+        # 如果 DB 有但 models 没有，则 reflected=True 且 compare_to is None
+        if reflected and compare_to is None:
+            return False  # 跳过 —— 不生成 drop_table 或其他删除操作
+    # 其它对象（columns、indexes 等）按默认行为（返回 True）
+    return True
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -67,7 +80,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(connection=connection, target_metadata=target_metadata, include_object=include_object)
 
         with context.begin_transaction():
             context.run_migrations()
