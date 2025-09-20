@@ -34,3 +34,9 @@ alembic revision --autogenerate
 ```shell
 alembic upgrade head
 ```
+
+## alembic 执行SQL
+```python
+# op.get_bind().connection.cursor().execute(sql)
+op.get_bind().exec_driver_sql(sql)
+```
