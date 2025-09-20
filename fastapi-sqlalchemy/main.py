@@ -1,10 +1,10 @@
 import contextlib
-import json
+import logging
 import time
-from typing import Callable, Awaitable
 
 import uvicorn
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -23,7 +23,7 @@ from utils import custom_openapi
 
 
 @contextlib.asynccontextmanager
-async def lifespan_context(app: FastAPI) -> None:
+async def lifespan_context(app: FastAPI):
     logger.info("Application startup: initializing resources")
     # Initialize resources (database connections, caches, etc.)
     yield
@@ -64,17 +64,17 @@ ApiException.register(app)
 custom_openapi(app)
 
 
-@app.middleware("http")
-async def request_body_logging(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
-    if request.method in {"POST", "PUT", "PATCH"}:
-        body_bytes = await request.body()
-        try:
-            body_json = json.loads(body_bytes)
-            logger.info("Request body: {}", body_json)
-        except json.JSONDecodeError:
-            logger.info("Request body (non-JSON)")
-
-    return await call_next(request)
+# @app.middleware("http")
+# async def request_body_logging(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+#     if request.method in {"POST", "PUT", "PATCH"}:
+#         body_bytes = await request.body()
+#         try:
+#             body_json = json.loads(body_bytes)
+#             logger.info("Request body: {}", body_json)
+#         except json.JSONDecodeError:
+#             logger.info("Request body (non-JSON)")
+#
+#     return await call_next(request)
 
 
 @app.exception_handler(RequestValidationError)
@@ -95,6 +95,11 @@ async def get_current_timestamp() -> int:
     return int(time.time())
 
 
+@app.post("/post")
+async def post(data: dict):
+    return jsonable_encoder(data)
+
+
 if __name__ == "__main__":
     try:
         uvicorn.run(
@@ -103,6 +108,7 @@ if __name__ == "__main__":
             port=8000,
             reload=False,
             workers=2,
+            log_level=logging.ERROR,
         )
     except KeyboardInterrupt:
         logger.info("Server is shutting down")

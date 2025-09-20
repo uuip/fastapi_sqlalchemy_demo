@@ -22,13 +22,13 @@ class Settings(BaseSettings):
     @computed_field
     @cached_property
     def db_dict(self) -> Dict[str, Any]:
-        c = urlparse(self.db)
+        u = urlparse(self.db)
         return {
-            "host": c.hostname,
-            "port": c.port or 5432,
-            "database": c.path.lstrip("/"),
-            "user": c.username,
-            "password": c.password,
+            "host": u.hostname,
+            "port": int(u.port) or 5432,
+            "database": u.path.lstrip("/"),
+            "user": u.username,
+            "password": u.password,
         }
 
 

@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import Query, Path, Body, APIRouter
 from pydantic import BaseModel, Field
@@ -23,8 +23,6 @@ class Item3(BaseModel):
 class FilterParams(BaseModel):
     limit: int = Field(100, gt=0, le=100)
     offset: int = Field(0, ge=0)
-    order_by: Literal["created_at", "updated_at"] = "created_at"
-    tags: list[str] = []
 
 
 @arg_api.get("/path/{uid}/{uid2}/{uid3}")
@@ -45,13 +43,13 @@ async def arg_query(
     return q, q2, q3
 
 
-# 函数定义中只能有一次模型类Query定义
+# 所有请求参数都转换为query，不能再添加单独的请求参数定义
 @arg_api.get("/query_model/")
 async def arg_query_model(
-    # filter_query: Annotated[FilterParams, Query()],
-    filter_query: FilterParams = Query(),
+    query: Annotated[FilterParams, Query()],
+    # query: FilterParams = Query(),
 ):
-    return filter_query
+    return query
 
 
 # {
@@ -59,9 +57,7 @@ async def arg_query_model(
 #     "description": "string",
 # }
 @arg_api.post("/body/")
-async def arg_body(
-    item: Item,
-):
+async def arg_body(item: Item):
     return item
 
 
@@ -87,16 +83,18 @@ async def arg_body_multi(
     return item, item2, item3
 
 
+# {
+#   "item":3,
+#   "item2": 4
+# }
+# return [3, 4]
 @arg_api.post("/body_2single/")
-async def arg_body_single(
-    importance: Annotated[int, Body()],
-    importance2: int = Body(),
-):
-    return importance, importance2
+async def arg_body_single(item: Annotated[int, Body()], item2: int = Body()):
+    return item, item2
 
 
+# 如果没有embed=True，由于类型标注为int，传入json只能是数字 33
+# 有embed=True，传入 {"data":33}后，data=33
 @arg_api.post("/body_1single/")
-async def arg_body_single(
-    importance: Annotated[int, Body(embed=True)],
-):
-    return importance
+async def arg_body_single(data: Annotated[int, Body(embed=True)]):
+    return data
