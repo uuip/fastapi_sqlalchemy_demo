@@ -8,4 +8,4 @@
 * Pydantic序列化示例<br> [schema.py](fastapi-sqlalchemy/schema.py)
 * .env支持<br> [config.py](fastapi-sqlalchemy/config.py)
 * docs路径添加认证 -- 原版没有<br> [api/docs.py](fastapi-sqlalchemy/api/docs.py)
-* migrations<br> [README.md](fastapi-sqlalchemy/migrations/README.md)
+* migrations<br> [README.md](migrations/README.md)

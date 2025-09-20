@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic, Sequence, TypeAlias, Annotated, Self
 
 from fastapi import Depends
-from pydantic import Field, BaseModel, conint
+from pydantic import Field, BaseModel
 from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,9 +15,9 @@ class Pagination(BaseModel):
 
 class Page(BaseModel, Generic[T]):
     code: int = 200
-    page: conint(ge=1)
-    size: conint(ge=1)
-    total: conint(ge=0)
+    page: Annotated[int, Field(gt=1)]
+    size: Annotated[int, Field(gt=1)]
+    total: Annotated[int, Field(gt=0)]
     data: Sequence[T]
 
     @classmethod

@@ -10,16 +10,16 @@ class Base(DeclarativeBase):
     pass
 
 
-class Trees(Base):
-    __tablename__ = "trees"
-    id = Column(BigInteger, Identity(), primary_key=True)
-    energy = Column(BigInteger)
-    updated_at = Column(
+class Account(Base):
+    __tablename__ = "account"
+    id = mapped_column(BigInteger, Identity(), primary_key=True)
+    balance = mapped_column(BigInteger)
+    updated_at = mapped_column(
         TIMESTAMP(timezone=True, precision=0),
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
-    created_at = Column(
+    created_at = mapped_column(
         TIMESTAMP(timezone=True, precision=0),
         server_default=func.current_timestamp(),
     )
@@ -30,15 +30,15 @@ class Trees(Base):
 
 class User(Base):
     __tablename__ = "user"
-    id = Column(BigInteger, Identity(), primary_key=True)
-    username = Column(Text, nullable=False, unique=True)
-    password = Column(PassWord, nullable=False)
-    updated_at = Column(
+    id = mapped_column(BigInteger, Identity(), primary_key=True)
+    username = mapped_column(Text, nullable=False, unique=True)
+    password = mapped_column(PassWord, nullable=False)
+    updated_at = mapped_column(
         TIMESTAMP(timezone=True, precision=0),
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
-    created_at = Column(
+    created_at = mapped_column(
         TIMESTAMP(timezone=True, precision=0),
         server_default=func.current_timestamp(),
     )

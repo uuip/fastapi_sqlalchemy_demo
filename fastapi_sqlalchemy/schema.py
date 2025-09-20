@@ -7,9 +7,9 @@ from pydantic import (
     ConfigDict,
     field_serializer,
     computed_field,
-    )
+)
 
-from model import Trees
+from model import Account
 from utils import sqlalchemy2pydantic
 
 tz = ZoneInfo("Asia/Shanghai")
@@ -19,7 +19,7 @@ class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TreeSchema(sqlalchemy2pydantic(Trees, BaseModel)):
+class AccountSchema(sqlalchemy2pydantic(Account, BaseModel)):
 
     @field_validator("created_at", "updated_at", mode="before")
     @classmethod
