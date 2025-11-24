@@ -4,7 +4,6 @@ import time
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,6 +12,7 @@ from sqladmin import Admin
 from sqlalchemy.exc import SQLAlchemyError
 
 from adminsite import UserAdmin, authentication_backend
+from api.arg_demo import arg_api
 from api.auth import token_api
 from api.tree import data_api
 from config import settings
@@ -24,11 +24,11 @@ from utils import custom_openapi
 
 @contextlib.asynccontextmanager
 async def lifespan_context(app: FastAPI):
-    logger.info("Application startup: initializing resources")
+    logger.debug("Application startup: initializing resources")
     # Initialize resources (database connections, caches, etc.)
     yield
     # Clean up resources (close connections, etc.)
-    logger.info("Application shutdown: cleaning up resources")
+    logger.debug("Application shutdown: cleaning up resources")
 
 
 if settings.debug:
@@ -56,6 +56,7 @@ app.add_middleware(
 
 app.include_router(data_api)
 app.include_router(token_api)
+app.include_router(arg_api)
 
 admin = Admin(app, async_db, authentication_backend=authentication_backend)
 admin.add_view(UserAdmin)
@@ -80,24 +81,24 @@ custom_openapi(app)
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
     logger.error(f"RequestValidationError: {exc.errors()}")
-    return JSONResponse(ERROR(data=exc.errors()).model_dump(), status_code=400)
+    return JSONResponse(ERROR(code=400, data=exc.errors()).model_dump(), status_code=400)
 
 
 @app.exception_handler(SQLAlchemyError)
 async def handle_database_error(request: Request, exc: SQLAlchemyError) -> JSONResponse:
     error_msg = ". ".join(exc.args)
     logger.error("Database operation error: {}", error_msg)
-    return JSONResponse(ERROR(error_msg).model_dump(), status_code=500)
+    return JSONResponse(ERROR(code=500, data=error_msg).model_dump(), status_code=500)
 
 
-@app.get("/time", summary="Get current timestamp", description="Returns the current Unix timestamp in seconds")
+@app.get("/time", description="Returns the current Unix timestamp in seconds")
 async def get_current_timestamp() -> int:
     return int(time.time())
 
 
 @app.post("/post")
 async def post(data: dict):
-    return jsonable_encoder(data)
+    return data
 
 
 if __name__ == "__main__":

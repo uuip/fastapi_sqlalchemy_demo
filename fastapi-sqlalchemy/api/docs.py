@@ -17,7 +17,7 @@ async def get_swagger_documentation(user: UserDep):
 
 @app.get("/redoc", include_in_schema=False)
 async def get_redoc_documentation(user: UserDep):
-    return get_redoc_html(openapi_url="/openapi.json", title="docs")
+    return get_redoc_html(openapi_url="/openapi.json", title="redoc")
 
 
 @app.get("/openapi.json", include_in_schema=False)

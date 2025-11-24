@@ -10,8 +10,7 @@ from core.token import decode_token
 from deps.db import SessionDep
 from model import User
 
-security = HTTPBearer()
-TokenDep: TypeAlias = Annotated[HTTPAuthorizationCredentials, Depends(security)]
+TokenDep: TypeAlias = Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())]
 
 
 async def authenticate(s: SessionDep, token: TokenDep) -> User:
