@@ -6,14 +6,14 @@ from jose import JWTError
 from sqlalchemy import select
 from starlette import status
 
-from core.token import decode_token
-from deps.db import SessionDep
-from model import User
+from fastapi_sqlalchemy.core.token import decode_token
+from fastapi_sqlalchemy.model import User
+from .db import SessionDep
 
 TokenDep: TypeAlias = Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())]
 
 
-async def authenticate(s: SessionDep, token: TokenDep) -> User:
+async def authenticate(s: SessionDep, token: TokenDep | str) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -21,7 +21,8 @@ async def authenticate(s: SessionDep, token: TokenDep) -> User:
     )
 
     try:
-        payload: Dict[str, Any] = decode_token(token.credentials)
+        token_str = token.credentials if hasattr(token, "credentials") else token
+        payload: Dict[str, Any] = decode_token(token_str)
         user_id = payload.get("id")
         if user_id is None:
             raise credentials_exception

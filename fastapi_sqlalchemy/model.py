@@ -2,8 +2,8 @@ from sqlalchemy import *
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import *
 
-from config import settings
-from core.password import PassWord, verify_password
+from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.core.password import PassWord, verify_password
 
 
 class Base(DeclarativeBase):

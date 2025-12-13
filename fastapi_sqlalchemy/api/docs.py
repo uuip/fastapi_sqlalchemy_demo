@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
-from deps import UserDep
+from fastapi_sqlalchemy.deps import UserDep
 
 docs_api = APIRouter()
 
@@ -24,4 +24,4 @@ async def get_redoc_documentation(user: UserDep):
 
 @docs_api.get("/openapi.json", include_in_schema=False)
 async def openapi(user: UserDep, request: Request):
-    return get_openapi(title=request.app.title, version=request.app.version, routes=app.routes)
+    return get_openapi(title=request.app.title, version=request.app.version, routes=request.app.routes)

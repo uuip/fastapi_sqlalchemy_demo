@@ -1,4 +1,4 @@
-from model import Account
+from fastapi_sqlalchemy.model import Account
 
 from sqlalchemy import select
 from sqlalchemy import func

@@ -1,0 +1,13 @@
+name: demo_project
+
+services:
+  api:
+    image: fastapi_sqlalchemy
+    build: .
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      DB_URL: postgres://postgres:postgres@host.docker.internal/postgres
+    ports:
+      - "8000:8000"
+    command: ["uvicorn","--host","0.0.0.0","--port","8000","--workers","4","fastapi_sqlalchemy.main:app"]

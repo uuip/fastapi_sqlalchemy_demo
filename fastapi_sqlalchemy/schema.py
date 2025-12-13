@@ -9,8 +9,8 @@ from pydantic import (
     computed_field,
 )
 
-from model import Account
-from utils import sqlalchemy2pydantic
+from fastapi_sqlalchemy.model import Account
+from fastapi_sqlalchemy.utils import sqlalchemy2pydantic
 
 tz = ZoneInfo("Asia/Shanghai")
 

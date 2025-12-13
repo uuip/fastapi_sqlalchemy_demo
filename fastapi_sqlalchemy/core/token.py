@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from jose import jwt
 from pydantic import BaseModel
 
-from config import settings
+from fastapi_sqlalchemy.config import settings
 
 ALGORITHM = "HS256"
 

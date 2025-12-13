@@ -28,7 +28,7 @@ package-mode = false
 [tool.pytest.ini_options]
 addopts = "-s"
 asyncio_mode = "auto"
-pythonpath = "fastapi_sqlalchemy"
+pythonpath = "."
 #testpaths = ["tests"]
 
 [dependency-groups]

@@ -5,11 +5,11 @@ from fastapi.security import HTTPBasicCredentials
 from sqlalchemy import select
 from starlette import status
 
-from config import settings
-from core.token import create_token, Token
-from deps import SessionDep
-from model import User
-from response import Rsp, OK
+from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.core.token import create_token, Token
+from fastapi_sqlalchemy.deps import SessionDep
+from fastapi_sqlalchemy.model import User
+from fastapi_sqlalchemy.response import Rsp, OK
 
 token_api = APIRouter(prefix="/token", tags=["Token Management"])
 

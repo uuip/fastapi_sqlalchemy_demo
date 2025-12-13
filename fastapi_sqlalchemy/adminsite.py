@@ -3,10 +3,11 @@ from sqladmin import ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
-from api.auth import login as auth_login
-from deps.authorization import authenticate as auth_authenticate
-from deps.db import async_session_factory
-from model import User
+from fastapi_sqlalchemy.api.auth import login as auth_login
+from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.deps.authorization import authenticate as auth_authenticate
+from fastapi_sqlalchemy.deps.db import async_session_factory
+from fastapi_sqlalchemy.model import User
 
 
 class AdminAuth(AuthenticationBackend):
@@ -36,7 +37,7 @@ class AdminAuth(AuthenticationBackend):
         return False
 
 
-authentication_backend = AdminAuth(secret_key="...")
+authentication_backend = AdminAuth(secret_key=settings.secret_key)
 
 
 class UserAdmin(ModelView, model=User):

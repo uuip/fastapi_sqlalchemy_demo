@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import sessionmaker
 
-from config import settings
-from model import User
+from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.model import User
 
 db = create_engine(settings.db)
 Session = sessionmaker(bind=db)

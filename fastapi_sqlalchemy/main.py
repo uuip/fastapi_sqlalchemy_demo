@@ -11,15 +11,15 @@ from loguru import logger
 from sqladmin import Admin
 from sqlalchemy.exc import SQLAlchemyError
 
-from adminsite import UserAdmin, authentication_backend
-from api.arg_demo import arg_api
-from api.auth import token_api
-from api.account import data_api
-from config import settings
-from deps.db import async_db
-from response import ERROR
-from response.exceptions import ApiException
-from utils import custom_openapi
+from fastapi_sqlalchemy.adminsite import UserAdmin, authentication_backend
+from fastapi_sqlalchemy.api.arg_demo import arg_api
+from fastapi_sqlalchemy.api.auth import token_api
+from fastapi_sqlalchemy.api.account import data_api
+from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.deps.db import async_db
+from fastapi_sqlalchemy.response import ERROR
+from fastapi_sqlalchemy.response.exceptions import ApiException
+from fastapi_sqlalchemy.utils import custom_openapi
 
 
 @contextlib.asynccontextmanager
@@ -56,7 +56,7 @@ app.include_router(data_api)
 app.include_router(token_api)
 app.include_router(arg_api)
 if not settings.debug:
-    from api.docs import docs_api
+    from fastapi_sqlalchemy.api.docs import docs_api
 
     app.include_router(docs_api)
 admin = Admin(app, async_db, authentication_backend=authentication_backend)
@@ -97,20 +97,21 @@ async def get_current_timestamp() -> int:
     return int(time.time())
 
 
-@app.post("/post")
-async def post(data: dict):
-    return data
+@app.post("/health", description="Health check")
+@app.get("/health", description="Health check")
+async def health():
+    return {"ok": True}
 
 
 if __name__ == "__main__":
     try:
         uvicorn.run(
-            "main:app",
+            "fastapi_sqlalchemy.main:app",
             host="0.0.0.0",
             port=8000,
             reload=False,
             workers=2,
-            log_level=logging.ERROR,
+            log_level=logging.INFO,
         )
     except KeyboardInterrupt:
         logger.info("Server is shutting down")

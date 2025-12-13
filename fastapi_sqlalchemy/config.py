@@ -25,7 +25,7 @@ class Settings(BaseSettings):
         u = urlparse(self.db)
         return {
             "host": u.hostname,
-            "port": int(u.port) or 5432,
+            "port": int(u.port or 5432),
             "database": u.path.lstrip("/"),
             "user": u.username,
             "password": u.password,
