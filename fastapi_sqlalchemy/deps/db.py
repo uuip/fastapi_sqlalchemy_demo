@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 
 from fastapi_sqlalchemy.config import settings
 
-url = urlparse(settings.db)._replace(scheme="postgresql+asyncpg").geturl()
+url = urlparse(settings.db_url)._replace(scheme="postgresql+asyncpg").geturl()
 async_db = create_async_engine(url, echo=False, pool_size=50)
 async_session_factory = async_sessionmaker(bind=async_db, expire_on_commit=False)
 

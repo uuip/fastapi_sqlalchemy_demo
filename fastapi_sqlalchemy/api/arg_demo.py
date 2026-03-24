@@ -1,6 +1,16 @@
 from typing import Annotated
 
-from fastapi import Query, Path, Body, APIRouter, Depends
+from fastapi import (
+    Query,
+    Path,
+    Body,
+    Form,
+    UploadFile,
+    APIRouter,
+    Depends,
+    Request,
+    )
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 
 arg_api = APIRouter(prefix="/arg")
@@ -83,3 +93,40 @@ async def arg_body_single(item: Annotated[int, Body()], item2: int = Body()):
 @arg_api.post("/body_1single/")
 async def arg_body_single(data: Annotated[int, Body(embed=True)]):
     return data
+
+
+@arg_api.post("/upload/")
+async def upload_files(
+    files: list[UploadFile],
+    template_ids: Annotated[list[int], Form()],
+):
+    """
+    POST http://127.0.0.1:8000/arg/upload/
+    Content-Type: multipart/form-data
+
+    files: file1.pdf
+    files: file2.pdf
+    template_ids: 101
+    template_ids: 102
+    """
+    return [
+        {
+            "filename": f.filename,
+            "content_type": f.content_type,
+            "template_id": tid,
+        }
+        for f, tid in zip(files, template_ids)
+    ]
+
+
+@arg_api.post("/body")
+async def file(request: Request):
+    body = await request.body()
+    return jsonable_encoder(body)
+
+
+@arg_api.post("/file")
+async def file(request: Request):
+    form = await request.form()
+    # template_ids = form.getlist("template_ids")
+    return {}

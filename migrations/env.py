@@ -1,4 +1,5 @@
 from logging.config import fileConfig
+from urllib.parse import urlparse
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -6,10 +7,14 @@ from sqlalchemy import engine_from_config, pool
 from fastapi_sqlalchemy.config import settings
 from fastapi_sqlalchemy.model import Base
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+if settings.db_url.startswith("postgres"):
+    db_url = urlparse(settings.db_url)._replace(scheme="postgresql+psycopg").geturl()
+elif settings.db_url.startswith("mysql"):
+    db_url = urlparse(settings.db_url)._replace(scheme="mysql+pymysql").geturl()
+else:
+    db_url = settings.db_url
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.db)
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

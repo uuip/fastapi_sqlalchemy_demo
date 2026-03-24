@@ -11,7 +11,7 @@ from fastapi_sqlalchemy.deps.db import async_session as api_async_session
 from fastapi_sqlalchemy.main import app
 from fastapi_sqlalchemy.model import User, Base
 
-url = urlparse(settings.db)._replace(scheme="postgresql+asyncpg").geturl()
+url = urlparse(settings.db_url)._replace(scheme="postgresql+asyncpg").geturl()
 
 
 @pytest.fixture(scope="session")

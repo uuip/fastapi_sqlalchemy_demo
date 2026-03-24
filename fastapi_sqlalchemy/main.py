@@ -1,5 +1,4 @@
 import contextlib
-import logging
 import time
 
 import uvicorn
@@ -12,9 +11,9 @@ from sqladmin import Admin
 from sqlalchemy.exc import SQLAlchemyError
 
 from fastapi_sqlalchemy.adminsite import UserAdmin, authentication_backend
+from fastapi_sqlalchemy.api.account import data_api
 from fastapi_sqlalchemy.api.arg_demo import arg_api
 from fastapi_sqlalchemy.api.auth import token_api
-from fastapi_sqlalchemy.api.account import data_api
 from fastapi_sqlalchemy.config import settings
 from fastapi_sqlalchemy.deps.db import async_db
 from fastapi_sqlalchemy.response import ERROR
@@ -111,7 +110,6 @@ if __name__ == "__main__":
             port=8000,
             reload=False,
             workers=2,
-            log_level=logging.INFO,
         )
     except KeyboardInterrupt:
         logger.info("Server is shutting down")

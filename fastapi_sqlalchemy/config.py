@@ -6,13 +6,13 @@ from urllib.parse import urlparse
 from pydantic import Field, computed_field
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
-_env_file = Path(__file__).parent / ".env"
+_env_file = Path(__file__).parent.parent / ".env"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=_env_file, extra="ignore")
 
-    db: str = Field(alias="db_url", description="Database connection string")
+    db_url: str = Field(description="Database connection string")
     debug: bool = Field(True, description="Enable debug mode")
     secret_key: str = Field(
         description="Secret key for JWT tokens (generate with: openssl rand -hex 32)",
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     @computed_field
     @cached_property
     def db_dict(self) -> Dict[str, Any]:
-        u = urlparse(self.db)
+        u = urlparse(self.db_url)
         return {
             "host": u.hostname,
             "port": int(u.port or 5432),
