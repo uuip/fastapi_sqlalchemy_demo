@@ -13,15 +13,15 @@ docs_api = APIRouter()
 
 
 @docs_api.get("/docs", include_in_schema=False)
-async def get_swagger_documentation(user: UserDep):
+async def get_swagger_documentation(_: UserDep):
     return get_swagger_ui_html(openapi_url="/openapi.json", title="docs")
 
 
 @docs_api.get("/redoc", include_in_schema=False)
-async def get_redoc_documentation(user: UserDep):
+async def get_redoc_documentation(_: UserDep):
     return get_redoc_html(openapi_url="/openapi.json", title="redoc")
 
 
 @docs_api.get("/openapi.json", include_in_schema=False)
-async def openapi(user: UserDep, request: Request):
+async def openapi(_: UserDep, request: Request):
     return get_openapi(title=request.app.title, version=request.app.version, routes=request.app.routes)

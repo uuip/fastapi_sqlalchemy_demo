@@ -9,11 +9,11 @@ from fastapi import (
     APIRouter,
     Depends,
     Request,
-    )
+)
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 
-arg_api = APIRouter(prefix="/arg")
+example_api = APIRouter(prefix="/example", tags=["Parameter Examples"])
 
 
 class Item(BaseModel):
@@ -31,32 +31,32 @@ class Pagination(BaseModel):
     offset: int = Field(0, ge=0)
 
 
-@arg_api.get("/path/{uid}/{uid2}/{uid3}")
-async def arg_path(
+@example_api.get("/path/{uid}/{uid2}/{uid3}")
+async def demo_path_params(
     uid: int,
     uid2: Annotated[int, Path()],
     uid3: int = Path(),
 ):
     """
-    GET http://127.0.0.1:8000/arg/path/1/2/3
+    GET http://127.0.0.1:8000/example/path/1/2/3
     """
     return uid, uid2, uid3
 
 
-@arg_api.get("/query/")
-async def arg_query(
+@example_api.get("/query/")
+async def demo_query_params(
     q: str,
     q2: Annotated[str | None, Query(max_length=50)] = None,
     q3: str | None = Query(default=None, max_length=50),
 ):
     """
-    GET http://127.0.0.1:8000/arg/query/?q=a&q2=b&q3=c
+    GET http://127.0.0.1:8000/example/query/?q=a&q2=b&q3=c
     """
     return q, q2, q3
 
 
-@arg_api.get("/query_model/")
-async def arg_query_model(
+@example_api.get("/query_model/")
+async def demo_query_model(
     query: Annotated[Pagination, Depends()],
     q4: Item = Depends(),
 ):
@@ -70,8 +70,8 @@ async def arg_query_model(
 #   },
 #   "item2": 5
 # }
-@arg_api.post("/body/")
-async def arg_body(
+@example_api.post("/body/")
+async def demo_json_body(
     item: Item,
     item2: Annotated[int, Body()],
 ):
@@ -83,25 +83,25 @@ async def arg_body(
 #   "item2": 4
 # }
 # return [3, 4]
-@arg_api.post("/body_2single/")
-async def arg_body_single(item: Annotated[int, Body()], item2: int = Body()):
+@example_api.post("/body_2single/")
+async def demo_body_two_scalars(item: Annotated[int, Body()], item2: int = Body()):
     return item, item2
 
 
 # 如果没有embed=True，由于类型标注为int，传入json只能是数字 33
 # 有embed=True，传入 {"data":33}后，data=33
-@arg_api.post("/body_1single/")
-async def arg_body_single(data: Annotated[int, Body(embed=True)]):
+@example_api.post("/body_1single/")
+async def demo_body_embedded_scalar(data: Annotated[int, Body(embed=True)]):
     return data
 
 
-@arg_api.post("/upload/")
-async def upload_files(
+@example_api.post("/upload/")
+async def demo_upload_files(
     files: list[UploadFile],
     template_ids: Annotated[list[int], Form()],
 ):
     """
-    POST http://127.0.0.1:8000/arg/upload/
+    POST http://127.0.0.1:8000/example/upload/
     Content-Type: multipart/form-data
 
     files: file1.pdf
@@ -119,14 +119,14 @@ async def upload_files(
     ]
 
 
-@arg_api.post("/body")
-async def file(request: Request):
+@example_api.post("/raw_body")
+async def demo_raw_body(request: Request):
     body = await request.body()
     return jsonable_encoder(body)
 
 
-@arg_api.post("/file")
-async def file(request: Request):
+@example_api.post("/raw_form")
+async def demo_raw_form(request: Request):
     form = await request.form()
     # template_ids = form.getlist("template_ids")
     return {}

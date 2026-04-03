@@ -9,7 +9,7 @@ from fastapi_sqlalchemy.config import settings
 from fastapi_sqlalchemy.core.token import create_token, Token
 from fastapi_sqlalchemy.deps import SessionDep
 from fastapi_sqlalchemy.model import User
-from fastapi_sqlalchemy.response import Rsp, OK
+from fastapi_sqlalchemy.response import Rsp
 
 token_api = APIRouter(prefix="/token", tags=["Token Management"])
 
@@ -37,4 +37,4 @@ async def login(s: SessionDep, credentials: HTTPBasicCredentials) -> Rsp[Token]:
     token_expires = timedelta(days=settings.jwt_expire_days)
     token = create_token(data={"id": user.id}, expires_delta=token_expires)
 
-    return OK(token)
+    return Rsp(token)

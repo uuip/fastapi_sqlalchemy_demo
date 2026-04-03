@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 from pydantic import (
     BaseModel,
     field_validator,
-    ConfigDict,
     field_serializer,
     computed_field,
 )
@@ -15,11 +14,7 @@ from fastapi_sqlalchemy.utils import sqlalchemy2pydantic
 tz = ZoneInfo("Asia/Shanghai")
 
 
-class BaseSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-
-class AccountSchema(sqlalchemy2pydantic(Account, BaseModel)):
+class AccountSchema(sqlalchemy2pydantic(Account)):
 
     @field_validator("created_at", "updated_at", mode="before")
     @classmethod

@@ -12,11 +12,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from fastapi_sqlalchemy.adminsite import UserAdmin, authentication_backend
 from fastapi_sqlalchemy.api.account import data_api
-from fastapi_sqlalchemy.api.arg_demo import arg_api
+from fastapi_sqlalchemy.api.param_examples import example_api
 from fastapi_sqlalchemy.api.auth import token_api
 from fastapi_sqlalchemy.config import settings
 from fastapi_sqlalchemy.deps.db import async_db
-from fastapi_sqlalchemy.response import ERROR
+from fastapi_sqlalchemy.response import Rsp
 from fastapi_sqlalchemy.response.exceptions import ApiException
 from fastapi_sqlalchemy.utils import custom_openapi
 
@@ -53,7 +53,7 @@ app.add_middleware(
 
 app.include_router(data_api)
 app.include_router(token_api)
-app.include_router(arg_api)
+app.include_router(example_api)
 if not settings.debug:
     from fastapi_sqlalchemy.api.docs import docs_api
 
@@ -61,7 +61,7 @@ if not settings.debug:
 admin = Admin(app, async_db, authentication_backend=authentication_backend)
 admin.add_view(UserAdmin)
 
-ApiException.register(app)
+app.add_exception_handler(ApiException, ApiException.handler)
 custom_openapi(app)
 
 
@@ -81,14 +81,14 @@ custom_openapi(app)
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
     logger.error(f"RequestValidationError: {exc.errors()}")
-    return JSONResponse(ERROR(code=400, data=exc.errors()).model_dump(), status_code=400)
+    return JSONResponse(Rsp.error(code=400, data=exc.errors()).model_dump(), status_code=400)
 
 
 @app.exception_handler(SQLAlchemyError)
 async def handle_database_error(request: Request, exc: SQLAlchemyError) -> JSONResponse:
     error_msg = ". ".join(exc.args)
     logger.error("Database operation error: {}", error_msg)
-    return JSONResponse(ERROR(code=500, data=error_msg).model_dump(), status_code=500)
+    return JSONResponse(Rsp.error(code=500, data=error_msg).model_dump(), status_code=500)
 
 
 @app.get("/time", description="Returns the current Unix timestamp in seconds")

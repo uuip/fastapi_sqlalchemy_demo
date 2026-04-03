@@ -2,7 +2,6 @@ from sqlalchemy import *
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import *
 
-from fastapi_sqlalchemy.config import settings
 from fastapi_sqlalchemy.core.password import PassWord, verify_password
 
 
@@ -48,8 +47,3 @@ class User(Base):
 
     def check_password(self, password):
         return verify_password(password, self.password)
-
-
-if __name__ == "__main__":
-    db = create_engine(settings.db)
-    Base.metadata.create_all(bind=db)
