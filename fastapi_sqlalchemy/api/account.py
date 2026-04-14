@@ -4,7 +4,7 @@ from fastapi import Query, APIRouter
 from sqlalchemy import select, update, func
 from sqlalchemy.dialects.postgresql import insert
 
-from fastapi_sqlalchemy.deps import SessionDep, Page, PageDep, UserDep
+from fastapi_sqlalchemy.deps import SessionDep, CursorPage, CursorPageDep, UserDep
 from fastapi_sqlalchemy.model import User
 from fastapi_sqlalchemy.response import Rsp, ApiException
 from fastapi_sqlalchemy.schema import AccountSchema, Item
@@ -12,12 +12,12 @@ from fastapi_sqlalchemy.schema import AccountSchema, Item
 data_api = APIRouter(prefix="/account", dependencies=[], tags=["管理账户"])
 
 
-@data_api.get("/q", response_model=Page[AccountSchema], summary="条件查询")
-async def query_accounts(energy: Annotated[int, Query(ge=0)], s: SessionDep, pagination: PageDep):
+@data_api.get("/q", response_model=CursorPage[AccountSchema], summary="条件查询（游标分页）")
+async def query_accounts(energy: Annotated[int, Query(ge=0)], s: SessionDep, pagination: CursorPageDep):
     if energy == 0:
         raise ApiException("demo error")
-    qs = select(User).where(User.balance >= energy).order_by("id")
-    return await Page.create(s, qs, pagination)
+    qs = select(User).where(User.balance >= energy).order_by(User.id)
+    return await CursorPage.create(s, qs, pagination, cursor_column=User.id)
 
 
 @data_api.get("/{id}", response_model=Rsp[AccountSchema], response_model_by_alias=False, summary="查询单个账户")
