@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: ailink-debot
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: fastapi_demo:latest # 请替换为实际镜像地址，生产环境建议使用固定 tag
+          imagePullPolicy: IfNotPresent # 使用 latest tag 时应设为 Always，避免拉取到旧镜像
+          ports:
+            - containerPort: 8000 # 容器监听端口，与 gunicorn --bind 0.0.0.0:8000 一致
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: DB_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: SECRET_KEY
+            - name: DEBUG
+              value: "false"
+          resources: # CPU/内存资源限制，requests 为调度基准，limits 为上限
+            requests:
+              cpu: "250m" # 0.25 核
+              memory: "256Mi" # 256 MiB
+            limits:
+              cpu: "500m" # 0.5 核
+              memory: "512Mi" # 512 MiB
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend # Service 自身的名称，供其他服务发现和调用
+  namespace: ailink-debot
+spec:
+  selector:
+    app: backend # 标签选择器，匹配 Deployment 中 spec.template.metadata.labels 定义的 Pod 标签，决定流量转发到哪些 Pod
+  ports:
+    - port: 80 # Service 对外暴露的端口
+      targetPort: 8000 # Service转发到容器的 8000 端口
+      nodePort: 30180 # 节点端口，外部通过 http://<节点IP>:30080 访问
+  type: NodePort

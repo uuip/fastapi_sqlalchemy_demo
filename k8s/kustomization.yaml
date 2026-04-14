@@ -1,0 +1,45 @@
+resources:
+  - deployment.yaml
+  - code-pvc.yaml
+
+patches:
+#  - patch: |
+#      apiVersion: apps/v1
+#      kind: Deployment
+#      metadata:
+#        name: backend
+#        namespace: ailink-debot
+#      spec:
+#        template:
+#          spec:
+#            containers:
+#              - name: backend
+#                volumeMounts:
+#                  - name: code
+#                    mountPath: /app/fastapi_sqlalchemy/main.py
+#                    subPath: fastapi_sqlalchemy/main.py
+#            volumes:
+#              - name: code
+#                hostPath:
+#                  path: /root/zhu_ning_dev/fastapi_sqlalchemy_demo
+#                  type: Directory
+
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: backend
+        namespace: ailink-debot
+      spec:
+        template:
+          spec:
+            containers:
+              - name: backend
+                volumeMounts:
+                  - name: code-nfs
+                    mountPath: /app/fastapi_sqlalchemy/main.py
+                    subPath: main.py
+            volumes:
+              - name: code-nfs
+                persistentVolumeClaim:
+                  claimName: backend-code-pvc

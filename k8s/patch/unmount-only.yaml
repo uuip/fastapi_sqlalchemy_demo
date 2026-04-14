@@ -1,0 +1,9 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: backend
+          volumeMounts:
+            - name: code-nfs
+              mountPath: /app/fastapi_sqlalchemy/main.py
+              $patch: delete

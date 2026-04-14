@@ -69,6 +69,7 @@ celerybeat-schedule
 celerybeat.pid
 *.sage.py
 .env
+k8s/secret.yaml
 env/
 venv/
 ENV/

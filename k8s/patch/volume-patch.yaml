@@ -1,0 +1,13 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: backend
+          volumeMounts:
+            - name: code-nfs
+              mountPath: /app/fastapi_sqlalchemy/main.py
+              subPath: main.py
+      volumes:
+        - name: code-nfs
+          persistentVolumeClaim:
+            claimName: backend-code-pvc
