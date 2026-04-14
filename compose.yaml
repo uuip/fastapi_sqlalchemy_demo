@@ -1,0 +1,11 @@
+name: fastapi_demo
+
+services:
+  api:
+    image: fastapi_demo
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"

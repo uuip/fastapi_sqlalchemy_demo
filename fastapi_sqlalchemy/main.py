@@ -1,0 +1,115 @@
+import contextlib
+import time
+
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from loguru import logger
+from sqladmin import Admin
+from sqlalchemy.exc import SQLAlchemyError
+
+from fastapi_sqlalchemy.adminsite import UserAdmin, authentication_backend
+from fastapi_sqlalchemy.api.account import data_api
+from fastapi_sqlalchemy.api.param_examples import example_api
+from fastapi_sqlalchemy.api.auth import token_api
+from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.deps.db import async_db
+from fastapi_sqlalchemy.response import Rsp
+from fastapi_sqlalchemy.response.exceptions import ApiException
+from fastapi_sqlalchemy.utils import custom_openapi
+
+
+@contextlib.asynccontextmanager
+async def lifespan_context(app: FastAPI):
+    logger.debug("Application startup: initializing resources")
+    # Initialize resources (database connections, caches, etc.)
+    yield
+    # Clean up resources (close connections, etc.)
+    logger.debug("Application shutdown: cleaning up resources")
+
+
+if settings.debug:
+    kwargs = {}
+else:
+    kwargs = dict(docs_url=None, redoc_url=None, openapi_url=None)
+
+app = FastAPI(
+    title="FastAPI SQLAlchemy Demo",
+    description="A demonstration project using FastAPI with SQLAlchemy",
+    version="1.0.0",
+    lifespan=lifespan_context,
+    **kwargs,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(data_api)
+app.include_router(token_api)
+app.include_router(example_api)
+if not settings.debug:
+    from fastapi_sqlalchemy.api.docs import docs_api
+
+    app.include_router(docs_api)
+admin = Admin(app, async_db, authentication_backend=authentication_backend)
+admin.add_view(UserAdmin)
+
+app.add_exception_handler(ApiException, ApiException.handler)
+custom_openapi(app)
+
+
+# @app.middleware("http")
+# async def request_body_logging(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+#     if request.method in {"POST", "PUT", "PATCH"}:
+#         body_bytes = await request.body()
+#         try:
+#             body_json = json.loads(body_bytes)
+#             logger.info("Request body: {}", body_json)
+#         except json.JSONDecodeError:
+#             logger.info("Request body (non-JSON)")
+#
+#     return await call_next(request)
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+    logger.error(f"RequestValidationError: {exc.errors()}")
+    return JSONResponse(Rsp.error(code=400, data=exc.errors()).model_dump(), status_code=400)
+
+
+@app.exception_handler(SQLAlchemyError)
+async def handle_database_error(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+    error_msg = ". ".join(exc.args)
+    logger.error("Database operation error: {}", error_msg)
+    return JSONResponse(Rsp.error(code=500, data=error_msg).model_dump(), status_code=500)
+
+
+@app.get("/time", description="Returns the current Unix timestamp in seconds")
+async def get_current_timestamp() -> int:
+    return int(time.time())
+
+
+@app.post("/health", description="Health check")
+@app.get("/health", description="Health check")
+async def health():
+    return {"ok": True}
+
+
+if __name__ == "__main__":
+    try:
+        uvicorn.run(
+            "fastapi_sqlalchemy.main:app",
+            host="0.0.0.0",
+            port=8000,
+            reload=False,
+            workers=2,
+        )
+    except KeyboardInterrupt:
+        logger.info("Server is shutting down")
