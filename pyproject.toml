@@ -39,10 +39,6 @@ test = [
     "httpx>=0.28.1"
 ]
 
-[[tool.uv.index]]
-url = "https://mirrors.ustc.edu.cn/pypi/simple/"
-default = true
-
 [tool.ruff.lint]
 ignore = ["F405"]
 

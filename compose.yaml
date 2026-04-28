@@ -5,6 +5,7 @@ services:
     image: fastapi_demo
     build: .
     restart: unless-stopped
+    pull_policy: never
     env_file:
       - .env
     ports:
