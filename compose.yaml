@@ -1,4 +1,6 @@
 name: fastapi_demo
+x-common-env: &common-env
+  DB_URL: "postgresql+psycopg://postgres:postgres@host.docker.internal/project"
 
 services:
   api:
@@ -8,5 +10,20 @@ services:
     pull_policy: never
     env_file:
       - .env
+    environment:
+      <<: *common-env
     ports:
       - "8000:8000"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+
+  migration:
+    image: fastapi_demo
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+    entrypoint: [ ]
+    command: [ "sh", "-c", "python -m migrations.ensure_db && alembic upgrade head" ]

@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.core.config import settings
 
 url = urlparse(settings.db_url)._replace(scheme="postgresql+asyncpg").geturl()
 async_db = create_async_engine(url, echo=False, pool_size=50)

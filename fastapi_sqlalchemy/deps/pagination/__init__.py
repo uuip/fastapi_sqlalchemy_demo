@@ -1,11 +1,4 @@
-from .offset import OffsetPagination, OffsetPage, OffsetPageDep
 from .cursor import CursorPagination, CursorPage, CursorPageDep
+from .offset import OffsetPagination, OffsetPage, OffsetPageDep
 
-__all__ = [
-    "OffsetPagination",
-    "OffsetPage",
-    "OffsetPageDep",
-    "CursorPagination",
-    "CursorPage",
-    "CursorPageDep",
-]
+__all__ = ["OffsetPagination", "OffsetPage", "OffsetPageDep", "CursorPagination", "CursorPage", "CursorPageDep"]

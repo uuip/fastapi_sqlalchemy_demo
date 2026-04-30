@@ -6,10 +6,10 @@ from sqlalchemy import NullPool
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
-from fastapi_sqlalchemy.config import settings
+from fastapi_sqlalchemy.core.config import settings
 from fastapi_sqlalchemy.deps.db import async_session as api_async_session
 from fastapi_sqlalchemy.main import app
-from fastapi_sqlalchemy.model import User, Base
+from fastapi_sqlalchemy.models import User, Base
 
 url = urlparse(settings.db_url)._replace(scheme="postgresql+asyncpg").geturl()
 

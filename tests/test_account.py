@@ -1,10 +1,10 @@
-from fastapi_sqlalchemy.model import User
+from fastapi_sqlalchemy.models import User
 
 from sqlalchemy import select
 from sqlalchemy import func
 
 
-async def test_add_tree(client, db_session):
+async def test_add_account(client, db_session):
     rsp = await client.post("/account/add")
     assert rsp.status_code == 200
     data = rsp.json()

@@ -1,33 +1,36 @@
+import pkgutil
+from importlib import import_module
 from logging.config import fileConfig
-from urllib.parse import urlparse
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from fastapi_sqlalchemy.config import settings
-from fastapi_sqlalchemy.model import Base
+from fastapi_sqlalchemy.core.config import settings
+from fastapi_sqlalchemy.models import Base
+from migrations.ensure_db import ensure_sync_driver
 
-if settings.db_url.startswith("postgres"):
-    db_url = urlparse(settings.db_url)._replace(scheme="postgresql+psycopg").geturl()
-elif settings.db_url.startswith("mysql"):
-    db_url = urlparse(settings.db_url)._replace(scheme="mysql+pymysql").geturl()
-else:
-    db_url = settings.db_url
 config = context.config
-config.set_main_option("sqlalchemy.url", db_url)
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+db_url = ensure_sync_driver(settings.db_url).replace("%", "%%")
+config.set_main_option("sqlalchemy.url", db_url)
 
 
+def load_module(paths: list, prefix=""):
+    for module_finder, name, ispkg in pkgutil.walk_packages(paths, prefix):
+        import_module(name)
+
+
+load_module(["fastapi_sqlalchemy/models"], "fastapi_sqlalchemy.models.")
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")

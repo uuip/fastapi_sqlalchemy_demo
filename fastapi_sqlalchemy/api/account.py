@@ -4,11 +4,11 @@ from fastapi import Query, APIRouter
 from sqlalchemy import select, update, func
 from sqlalchemy.dialects.postgresql import insert
 
+from fastapi_sqlalchemy.core.exceptions import ApiException
 from fastapi_sqlalchemy.deps import SessionDep, CursorPage, CursorPageDep, UserDep
-from fastapi_sqlalchemy.model import User
-from fastapi_sqlalchemy.exceptions import ApiException
-from fastapi_sqlalchemy.response import Rsp
-from fastapi_sqlalchemy.schema import AccountSchema, Item
+from fastapi_sqlalchemy.models import User
+from fastapi_sqlalchemy.schemas import AccountSchema, Item
+from fastapi_sqlalchemy.schemas.response import Rsp
 
 data_api = APIRouter(prefix="/account", dependencies=[], tags=["管理账户"])
 

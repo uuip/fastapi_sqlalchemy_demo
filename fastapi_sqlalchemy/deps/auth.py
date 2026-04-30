@@ -7,7 +7,7 @@ from sqlalchemy import select
 from starlette import status
 
 from fastapi_sqlalchemy.core.token import decode_token
-from fastapi_sqlalchemy.model import User
+from fastapi_sqlalchemy.models import User
 from .db import SessionDep
 
 TokenDep: TypeAlias = Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())]

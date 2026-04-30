@@ -15,6 +15,8 @@ FROM builder
 ENV PYTHONPATH=/app
 WORKDIR $PYTHONPATH
 COPY ./fastapi_sqlalchemy fastapi_sqlalchemy
+COPY ./migrations migrations
+COPY ./alembic.ini alembic.ini
 
 ENTRYPOINT ["gunicorn","fastapi_sqlalchemy.main:app","--pid","pid", "--access-logfile", "-"]
 CMD [ "--bind","0.0.0.0:8000", "--worker-class","uvicorn.workers.UvicornWorker","--workers","2", "--timeout","1800"]

@@ -26,12 +26,7 @@ class OffsetPage(BaseModel, Generic[T]):
         page = pagination.page
         total = await s.scalar(select(func.count()).select_from(qs.subquery()))
         data = await s.scalars(qs.limit(size).offset(page * size - size))
-        return cls(
-            total=total,
-            data=data.all(),
-            page=page,
-            size=size,
-        )
+        return cls(total=total, data=data.all(), page=page, size=size)
 
 
 OffsetPageDep: TypeAlias = Annotated[OffsetPagination, Depends()]

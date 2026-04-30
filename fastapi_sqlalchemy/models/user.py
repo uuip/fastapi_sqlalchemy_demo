@@ -19,10 +19,7 @@ class User(Base):
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
-    created_at = mapped_column(
-        TIMESTAMP(timezone=True, precision=0),
-        server_default=func.current_timestamp(),
-    )
+    created_at = mapped_column(TIMESTAMP(timezone=True, precision=0), server_default=func.current_timestamp())
     balance = mapped_column(BigInteger)
 
     def __repr__(self):

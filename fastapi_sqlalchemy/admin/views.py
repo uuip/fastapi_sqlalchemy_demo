@@ -4,10 +4,10 @@ from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
 from fastapi_sqlalchemy.api.auth import login as auth_login
-from fastapi_sqlalchemy.config import settings
-from fastapi_sqlalchemy.deps.authorization import authenticate as auth_authenticate
+from fastapi_sqlalchemy.core.config import settings
+from fastapi_sqlalchemy.deps.auth import authenticate as auth_authenticate
 from fastapi_sqlalchemy.deps.db import async_session_factory
-from fastapi_sqlalchemy.model import User
+from fastapi_sqlalchemy.models import User
 
 
 class AdminAuth(AuthenticationBackend):

@@ -1,25 +1,19 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from pydantic import (
-    BaseModel,
-    field_validator,
-    field_serializer,
-    computed_field,
-    )
+from pydantic import BaseModel, field_validator, field_serializer, computed_field
 
 tz = ZoneInfo("Asia/Shanghai")
 
 
 class AccountSchema(BaseModel):
 
-
-    id :int
-    username:str
-    password:str
-    updated_at:datetime
-    created_at :datetime
-    balance:int
+    id: int
+    username: str
+    password: str
+    updated_at: datetime
+    created_at: datetime
+    balance: int
 
     @field_validator("created_at", "updated_at", mode="before")
     @classmethod
@@ -41,7 +35,3 @@ class AccountSchema(BaseModel):
 class Item(BaseModel):
     id: int
     energy: int
-
-
-class UserSchema(BaseModel):
-    username: str

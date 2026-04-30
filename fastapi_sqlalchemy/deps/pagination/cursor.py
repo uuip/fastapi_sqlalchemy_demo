@@ -13,6 +13,7 @@ class CursorPagination(BaseModel):
     cursor: 上一页最后一条记录的游标值（通常为主键 id），首页不传或传 None。
     size:   每页条数。
     """
+
     cursor: Optional[int] = Field(default=None, description="游标（上一页最后一条记录的 id），首页不传")
     size: int = Field(default=10, ge=1, description="每页条数")
 
@@ -24,6 +25,7 @@ class CursorPage(BaseModel, Generic[T]):
                  若为 None 则表示已是最后一页。
     has_more:    是否还有下一页。
     """
+
     code: int = 200
     size: Annotated[int, Field(ge=1)]
     next_cursor: Optional[int] = Field(default=None, description="下一页游标，为 None 表示无更多数据")
@@ -31,14 +33,7 @@ class CursorPage(BaseModel, Generic[T]):
     data: Sequence[T]
 
     @classmethod
-    async def create(
-        cls,
-        s: AsyncSession,
-        qs: Select,
-        pagination: CursorPagination,
-        *,
-        cursor_column: Column,
-    ) -> Self:
+    async def create(cls, s: AsyncSession, qs: Select, pagination: CursorPagination, *, cursor_column: Column) -> Self:
         """构建游标分页查询并返回 CursorPage。
 
         参数:
@@ -63,12 +58,7 @@ class CursorPage(BaseModel, Generic[T]):
         data = rows[:size]
         next_cursor = getattr(data[-1], cursor_column.key) if (has_more and data) else None
 
-        return cls(
-            size=size,
-            next_cursor=next_cursor,
-            has_more=has_more,
-            data=data,
-        )
+        return cls(size=size, next_cursor=next_cursor, has_more=has_more, data=data)
 
 
 CursorPageDep: TypeAlias = Annotated[CursorPagination, Depends()]

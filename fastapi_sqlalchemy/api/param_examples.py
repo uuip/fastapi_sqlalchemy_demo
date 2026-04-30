@@ -1,15 +1,6 @@
 from typing import Annotated
 
-from fastapi import (
-    Query,
-    Path,
-    Body,
-    Form,
-    UploadFile,
-    APIRouter,
-    Depends,
-    Request,
-)
+from fastapi import Query, Path, Body, Form, UploadFile, APIRouter, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 
@@ -32,11 +23,7 @@ class Pagination(BaseModel):
 
 
 @example_api.get("/path-params/{uid}/{uid2}/{uid3}")
-async def path_params(
-    uid: int,
-    uid2: Annotated[int, Path()],
-    uid3: int = Path(),
-):
+async def path_params(uid: int, uid2: Annotated[int, Path()], uid3: int = Path()):
     """
     GET http://127.0.0.1:8000/example/path-params/1/2/3
     """
@@ -45,9 +32,7 @@ async def path_params(
 
 @example_api.get("/query-params")
 async def query_params(
-    q: str,
-    q2: Annotated[str | None, Query(max_length=50)] = None,
-    q3: str | None = Query(default=None, max_length=50),
+    q: str, q2: Annotated[str | None, Query(max_length=50)] = None, q3: str | None = Query(default=None, max_length=50)
 ):
     """
     GET http://127.0.0.1:8000/example/query-params?q=a&q2=b&q3=c
@@ -56,10 +41,7 @@ async def query_params(
 
 
 @example_api.get("/query-model")
-async def query_model(
-    query: Annotated[Pagination, Depends()],
-    q4: Item = Depends(),
-):
+async def query_model(query: Annotated[Pagination, Depends()], q4: Item = Depends()):
     return query, q4
 
 
@@ -71,10 +53,7 @@ async def query_model(
 #   "item2": 5
 # }
 @example_api.post("/json-body")
-async def json_body(
-    item: Item,
-    item2: Annotated[int, Body()],
-):
+async def json_body(item: Item, item2: Annotated[int, Body()]):
     return item, item2
 
 
@@ -96,10 +75,7 @@ async def embedded_scalar(data: Annotated[int, Body(embed=True)]):
 
 
 @example_api.post("/upload")
-async def upload_files(
-    files: list[UploadFile],
-    template_ids: Annotated[list[int], Form()],
-):
+async def upload_files(files: list[UploadFile], template_ids: Annotated[list[int], Form()]):
     """
     POST http://127.0.0.1:8000/example/upload
     Content-Type: multipart/form-data
@@ -110,11 +86,7 @@ async def upload_files(
     template_ids: 102
     """
     return [
-        {
-            "filename": f.filename,
-            "content_type": f.content_type,
-            "template_id": tid,
-        }
+        {"filename": f.filename, "content_type": f.content_type, "template_id": tid}
         for f, tid in zip(files, template_ids)
     ]
 
