@@ -1,6 +1,11 @@
+import json
+from typing import Any
+
+from fastapi.encoders import jsonable_encoder
 from fastapi.openapi.utils import get_openapi
 from loguru import logger
 from pydantic import create_model, ConfigDict, BaseModel
+from rich.pretty import pretty_repr
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -48,3 +53,18 @@ def custom_openapi(app):
         return app.openapi_schema
 
     app.openapi = remove_422
+
+
+def pretty_data(data: Any) -> str:
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            return data
+
+    try:
+        data = jsonable_encoder(data)
+    except (TypeError, ValueError):
+        pass
+
+    return pretty_repr(data, max_width=120, indent_size=2)

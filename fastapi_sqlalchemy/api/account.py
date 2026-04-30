@@ -6,7 +6,8 @@ from sqlalchemy.dialects.postgresql import insert
 
 from fastapi_sqlalchemy.deps import SessionDep, CursorPage, CursorPageDep, UserDep
 from fastapi_sqlalchemy.model import User
-from fastapi_sqlalchemy.response import Rsp, ApiException
+from fastapi_sqlalchemy.exceptions import ApiException
+from fastapi_sqlalchemy.response import Rsp
 from fastapi_sqlalchemy.schema import AccountSchema, Item
 
 data_api = APIRouter(prefix="/account", dependencies=[], tags=["管理账户"])
