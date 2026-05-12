@@ -18,7 +18,6 @@ spec:
       containers:
         - name: backend
           image: fastapi_demo:latest # 请替换为实际镜像地址，生产环境建议使用固定 tag
-          imagePullPolicy: IfNotPresent # 使用 latest tag 时应设为 Always，避免拉取到旧镜像
           ports:
             - containerPort: 8000 # 容器监听端口，与 gunicorn --bind 0.0.0.0:8000 一致
           env:
@@ -37,10 +36,10 @@ spec:
           resources: # CPU/内存资源限制，requests 为调度基准，limits 为上限
             requests:
               cpu: "250m" # 0.25 核
-              memory: "256Mi" # 256 MiB
+              memory: "512Mi"
             limits:
-              cpu: "500m" # 0.5 核
-              memory: "512Mi" # 512 MiB
+              cpu: "1000m"
+              memory: "2Gi"
 ---
 apiVersion: v1
 kind: Service
@@ -53,5 +52,5 @@ spec:
   ports:
     - port: 80 # Service 对外暴露的端口
       targetPort: 8000 # Service转发到容器的 8000 端口
-      nodePort: 30180 # 节点端口，外部通过 http://<节点IP>:30080 访问
-  type: NodePort
+      nodePort: 30080 # 节点端口，外部通过 http://<节点IP>:30080 访问
+  type: NodePort # 删掉上一行nodePort和这一行则不对外暴露端口 ClusterIP
