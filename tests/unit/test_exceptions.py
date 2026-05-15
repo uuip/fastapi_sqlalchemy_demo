@@ -1,4 +1,4 @@
-from app.core.exceptions import ApiException
+from app.common.exceptions import ApiException
 
 
 def test_default_status_code_is_400():

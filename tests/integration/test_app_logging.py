@@ -1,6 +1,7 @@
 import logging
 
-from tests.integration.helpers import capture_log_messages, create_user
+from app.apps.accounts.tests.helpers import create_user
+from tests.integration.helpers import capture_log_messages
 
 
 async def test_setup_logging_forwards_stdlib_logs_after_app_startup(client):

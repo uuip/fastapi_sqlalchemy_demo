@@ -13,8 +13,8 @@ alembic init migrations
 import pkgutil
 from importlib import import_module
 
-from app.config import settings
-from app.models import Base
+from app.apps.accounts.models import Base
+from app.common.config import settings
 from migrations.ensure_db import ensure_sync_driver
 
 # autogenerate 需要的元数据
@@ -26,12 +26,12 @@ config.set_main_option("sqlalchemy.url", db_url)
 
 
 def load_module(paths: list, prefix=""):
-    # 模型分散在 app/models 子模块时，需要逐个 import 触发注册到 Base.metadata
+    # 模型分散在 app/apps/accounts/models 子模块时，需要逐个 import 触发注册到 Base.metadata
     for module_finder, name, ispkg in pkgutil.walk_packages(paths, prefix):
         import_module(name)
 
 
-load_module(["app/models"], "app.models.")
+load_module(["app/apps/accounts/models"], "app.apps.accounts.models.")
 ```
 
 ## 生成模型变动

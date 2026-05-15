@@ -1,4 +1,4 @@
-from app.core.password import make_password, verify_password
+from app.common.security.password import make_password, verify_password
 
 
 def test_make_password_returns_hash():

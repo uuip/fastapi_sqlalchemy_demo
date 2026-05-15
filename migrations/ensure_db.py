@@ -107,7 +107,7 @@ def ensure_database_and_schema(db_url: str):
 
 
 if __name__ == "__main__":
-    from app.config import settings
+    from app.common.config import settings
 
     try:
         ensure_database_and_schema(settings.db_url)

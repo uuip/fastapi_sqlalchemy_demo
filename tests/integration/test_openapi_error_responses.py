@@ -73,7 +73,7 @@ async def test_openapi_error_responses_include_runtime_shape_examples(client):
     update_401 = schema["paths"]["/account/update"]["post"]["responses"]["401"]
     update_404 = schema["paths"]["/account/update"]["post"]["responses"]["404"]
     add_account_500 = schema["paths"]["/account/add"]["post"]["responses"]["500"]
-    file_404 = schema["paths"]["/files/download/{filename}"]["get"]["responses"]["404"]
+    file_404 = schema["paths"]["/static-files/download/{filename}"]["get"]["responses"]["404"]
 
     assert login_401["content"]["application/json"]["example"] == {
         "code": 401,

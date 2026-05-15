@@ -1,6 +1,6 @@
 import pytest
 
-from app.core import db
+from app.common import db
 
 
 class FakeSession:

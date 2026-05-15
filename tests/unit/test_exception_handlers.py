@@ -6,9 +6,9 @@ from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.exception_handlers import install_exception_handlers
-from app.core.exceptions import ApiException
-from app.core.middleware import CatchAllExceptionMiddleware
+from app.common.exception_handlers import install_exception_handlers
+from app.common.exceptions import ApiException
+from app.common.middleware import CatchAllExceptionMiddleware
 
 
 class Item(BaseModel):

@@ -3,8 +3,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from jwt import PyJWTError
 
-from app.core import token as token_module
-from app.core.token import Token, create_token, decode_token
+from app.common.security import token as token_module
+from app.common.security.token import Token, create_token, decode_token
 
 
 def test_token_model_defaults():

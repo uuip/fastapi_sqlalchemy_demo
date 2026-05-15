@@ -6,8 +6,8 @@ from fastapi import Depends, FastAPI, Request
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 
-from app.core import logging as core_logging
-from app.core.logging import log_request
+from app.common import logging as core_logging
+from app.common.logging import log_request
 
 
 class Payload(BaseModel):

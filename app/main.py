@@ -7,12 +7,14 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from sqladmin import Admin
 
-from app.admin import UserAdmin, authentication_backend
-from app.config import settings
-from app.core.db import async_db
-from app.core.exception_handlers import install_exception_handlers
-from app.core.logging import setup_logging
-from app.core.middleware import CatchAllExceptionMiddleware
+from app.apps.accounts.admin import UserAdmin, authentication_backend
+from app.apps.file_manager.config import settings as file_manager_config
+from app.apps.file_manager.deps import create_file_manager_context
+from app.common.config import settings
+from app.common.db import async_db
+from app.common.exception_handlers import install_exception_handlers
+from app.common.logging import setup_logging
+from app.common.middleware import CatchAllExceptionMiddleware
 from app.routing import api_router
 
 
@@ -20,6 +22,7 @@ from app.routing import api_router
 async def lifespan_context(app: FastAPI):
     async with contextlib.AsyncExitStack() as stack:
         stack.push_async_callback(async_db.dispose)
+        app.state.file_manager_context = create_file_manager_context(config=file_manager_config)
         yield
 
 

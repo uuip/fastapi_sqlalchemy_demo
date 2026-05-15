@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
-from app.schemas.response import (
+from app.common.schemas.response import (
     ErrorResponse,
     ValidationErrorItem,
     default_router_responses,

@@ -4,10 +4,10 @@ from sqlalchemy import NullPool
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.core.db import async_db
-from app.core.db import async_session as api_async_session
+from app.apps.accounts.models import Base, User
+from app.common.db import async_db
+from app.common.db import async_session as api_async_session
 from app.main import app
-from app.models import Base, User
 
 url = async_db.url
 

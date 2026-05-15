@@ -1,6 +1,6 @@
 from pydantic import TypeAdapter
 
-from app.schemas.response import Rsp
+from app.common.schemas.response import Rsp
 
 
 def test_response_model_accepts_positional_data():

@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.services import account as account_service
+from app.apps.accounts.services import account as account_service
 from tests.integration.helpers import capture_error_records
 
 
@@ -61,7 +61,7 @@ async def test_sqlalchemy_exception_handler_returns_500_and_logs_project_trace(c
     assert db_errors[0]["exception"].value.args == ("integration database failure",)
     assert db_errors[0]["exception"].traceback is not None
     frames = list(_iter_frames(db_errors[0]["exception"].traceback))
-    assert any(fn.endswith("app/api/account.py") and name == "add_account" for fn, name in frames)
+    assert any(fn.endswith("app/apps/accounts/api/account.py") and name == "add_account" for fn, name in frames)
 
 
 async def test_unhandled_exception_middleware_returns_500_logs_project_trace_and_preserves_cors(
@@ -85,4 +85,4 @@ async def test_unhandled_exception_middleware_returns_500_logs_project_trace_and
     assert unhandled_errors[0]["exception"].value.args == ("integration unexpected failure",)
     assert unhandled_errors[0]["exception"].traceback is not None
     frames = list(_iter_frames(unhandled_errors[0]["exception"].traceback))
-    assert any(fn.endswith("app/api/account.py") and name == "add_account" for fn, name in frames)
+    assert any(fn.endswith("app/apps/accounts/api/account.py") and name == "add_account" for fn, name in frames)

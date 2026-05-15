@@ -2,7 +2,7 @@ import logging
 
 from loguru import logger
 
-from app.core import logging as core_logging
+from app.common import logging as core_logging
 
 
 def test_setup_logging_forwards_stdlib_to_loguru():

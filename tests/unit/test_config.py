@@ -1,6 +1,6 @@
 from sqlalchemy import make_url
 
-from app.config import Settings
+from app.common.config import Settings
 
 # --- inject_db_timezone ---
 

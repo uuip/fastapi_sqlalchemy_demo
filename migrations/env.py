@@ -5,8 +5,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.config import settings
-from app.models import Base
+from app.apps.accounts.models import Base
+from app.common.config import settings
 from migrations.ensure_db import ensure_sync_driver
 
 config = context.config
@@ -31,7 +31,7 @@ def load_module(paths: list, prefix=""):
         import_module(name)
 
 
-load_module(["app/models"], "app.models.")
+load_module(["app/apps/accounts/models"], "app.apps.accounts.models.")
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
