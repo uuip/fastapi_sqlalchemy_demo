@@ -1,4 +1,3 @@
-import re
 from functools import cached_property
 from pathlib import Path
 from typing import Any
@@ -33,15 +32,15 @@ class Settings(BaseSettings):
 
     @field_validator("db_url")
     @classmethod
-    def inject_db_timezone(cls, v):
-        if re.search(r"time_?zone", v, re.I):
-            return v
+    def inject_db_timezone(cls, v: str) -> str:
         url = make_url(v)
-        if "mysql" in url.drivername:
+        backend = url.get_backend_name()
+        if backend == "mysql":
             url = url.update_query_dict({"init_command": "SET time_zone = '+08:00'"})
-        elif "postgres" in url.drivername or "kingbase" in url.drivername:
-            existing = url.query.get("options", "")
-            url = url.update_query_dict({"options": f"{existing} -c timezone=Asia/Shanghai".strip()})
+        elif backend in {"postgres", "postgresql", "kingbase"}:
+            url = url.update_query_dict({"options": "-c timezone=Asia/Shanghai"})
+        else:
+            return v
         return url.render_as_string(hide_password=False)
 
 
