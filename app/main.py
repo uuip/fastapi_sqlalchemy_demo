@@ -9,7 +9,7 @@ from sqladmin import Admin
 
 from app.admin import UserAdmin, authentication_backend
 from app.config import settings
-from app.core.db import async_db
+from app.core.db import async_db, async_pool
 from app.core.exception_handlers import install_exception_handlers
 from app.core.logging import setup_logging
 from app.core.middleware import CatchAllExceptionMiddleware
@@ -19,7 +19,9 @@ from app.routing import api_router
 @contextlib.asynccontextmanager
 async def lifespan_context(app: FastAPI):
     async with contextlib.AsyncExitStack() as stack:
+        stack.push_async_callback(async_pool.close)
         stack.push_async_callback(async_db.dispose)
+        await async_pool.open()
         yield
 
 
