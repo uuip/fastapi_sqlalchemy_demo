@@ -1,20 +1,31 @@
-FROM docker.m.daocloud.io/python:3.14-slim AS base
-RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources \
-    && apt-get update && apt-get install -y --no-install-recommends curl tar \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
-COPY --from=ghcr.m.daocloud.io/astral-sh/uv:latest /uv /bin/
+# syntax=docker/dockerfile:1
 
-FROM base AS deps
-ENV UV_LINK_MODE=copy
-ENV UV_PROJECT_ENVIRONMENT=/usr/local/
-COPY uv.lock pyproject.toml ./
-RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv sync --no-install-project
+FROM docker.m.daocloud.io/python:3.14-slim AS builder
 
-FROM deps
-ENV TZ=Asia/Shanghai
-ENV PYTHONPATH=/project
-WORKDIR $PYTHONPATH
+ARG TARGETARCH
+
+ENV UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /build
+
+RUN --mount=from=ghcr.m.daocloud.io/astral-sh/uv:0.12.5,source=/uv,target=/bin/uv \
+    --mount=type=cache,id=uv-cache-py314-${TARGETARCH},target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=/build/uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=/build/pyproject.toml \
+    uv sync --locked --no-install-project --no-default-groups
+
+FROM docker.m.daocloud.io/python:3.14-slim AS runtime
+
+ENV PATH="/opt/venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1 \
+    TZ=Asia/Shanghai \
+    PYTHONPATH=/project
+
+WORKDIR /project
+
+COPY --link --from=builder /opt/venv /opt/venv
 COPY ./app app
 COPY ./migrations migrations
 COPY ./alembic.ini alembic.ini

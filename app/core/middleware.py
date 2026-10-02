@@ -35,9 +35,7 @@ class CatchAllExceptionMiddleware:
             await self.app(scope, receive, send_wrapper)
         except Exception as exc:
             request = Request(scope, receive=receive)
-            logger.opt(exception=exc).error(
-                "Unhandled error: {} {}", request.method, request.url.path
-            )
+            logger.opt(exception=exc).error("Unhandled error: {} {}", request.method, request.url.path)
             if response_started:
                 # Headers already sent — protocol forbids rewriting to 500.
                 # Re-raise so the ASGI server (uvicorn) terminates the connection

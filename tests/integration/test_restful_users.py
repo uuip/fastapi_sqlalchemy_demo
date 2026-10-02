@@ -1,12 +1,50 @@
 import pytest
-from sqlalchemy import select
+from sqlalchemy import func, select
 
+from app.core.password import verify_password
 from app.models import User
 from app.services import account as account_service
+from tests.integration.helpers import create_user
 
 
-async def test_users_resource_supports_standard_restful_crud(client, db_session):
-    create_rsp = await client.post("/users", json={"username": "rest-user", "password": "secret", "energy": 10})
+@pytest.mark.parametrize("authorization", [None, "Bearer invalid-token"])
+@pytest.mark.parametrize("method", ["PUT", "PATCH", "DELETE"])
+async def test_users_resource_requires_authentication_without_changing_data(client, db_session, method, authorization):
+    target = await create_user(db_session, username="protected-target", password="original-password", energy=10)
+    target_id = target.id
+    count_before = await db_session.scalar(select(func.count()).select_from(User))
+    path = f"/users/{target_id}"
+    headers = {"Authorization": authorization} if authorization else {}
+    body = {"username": "changed-user", "password": "changed-password", "energy": 20}
+
+    response = await client.request(
+        method, path, headers=headers, json=body if method in {"POST", "PUT", "PATCH"} else None
+    )
+
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"] == "Bearer"
+    assert await db_session.scalar(select(func.count()).select_from(User)) == count_before
+    assert await db_session.scalar(select(User.energy).where(User.id == target_id)) == 10
+    stored_password = await db_session.scalar(select(User.password).where(User.id == target_id))
+    assert verify_password("original-password", stored_password)
+
+
+async def test_public_user_creation_and_queries_remain_available(client):
+    created = await client.post("/users", json={"username": "public-demo", "password": "password", "energy": 10})
+    assert created.status_code == 201
+    user = created.json()
+    detail = await client.get(f"/users/{user['id']}")
+    assert detail.status_code == 200
+    assert detail.json() == user
+    listed = await client.get("/users")
+    assert listed.status_code == 200
+    assert user in listed.json()["data"]
+
+
+async def test_users_resource_supports_standard_restful_crud(authorized_client, db_session):
+    create_rsp = await authorized_client.post(
+        "/users", json={"username": "rest-user", "password": "secret", "energy": 10}
+    )
 
     assert create_rsp.status_code == 201
     created = create_rsp.json()
@@ -15,7 +53,7 @@ async def test_users_resource_supports_standard_restful_crud(client, db_session)
     assert created["energy"] == 10
     assert "password" not in created
 
-    list_rsp = await client.get("/users", params={"page": 1, "size": 10})
+    list_rsp = await authorized_client.get("/users", params={"page": 1, "size": 10})
 
     assert list_rsp.status_code == 200
     listed = list_rsp.json()
@@ -24,12 +62,12 @@ async def test_users_resource_supports_standard_restful_crud(client, db_session)
     assert listed["total"] >= 1
     assert created in listed["data"]
 
-    detail_rsp = await client.get(f"/users/{created['id']}")
+    detail_rsp = await authorized_client.get(f"/users/{created['id']}")
 
     assert detail_rsp.status_code == 200
     assert detail_rsp.json() == created
 
-    replace_rsp = await client.put(
+    replace_rsp = await authorized_client.put(
         f"/users/{created['id']}",
         json={"username": "rest-user-replaced", "password": "new-secret", "energy": 20},
     )
@@ -38,7 +76,7 @@ async def test_users_resource_supports_standard_restful_crud(client, db_session)
     replaced = replace_rsp.json()
     assert replaced == {"id": created["id"], "username": "rest-user-replaced", "energy": 20}
 
-    patch_rsp = await client.patch(f"/users/{created['id']}", json={"energy": 30})
+    patch_rsp = await authorized_client.patch(f"/users/{created['id']}", json={"energy": 30})
 
     assert patch_rsp.status_code == 200
     patched = patch_rsp.json()
@@ -48,7 +86,7 @@ async def test_users_resource_supports_standard_restful_crud(client, db_session)
     await db_session.refresh(stored, attribute_names=["password"])
     assert stored.check_password("new-secret")
 
-    delete_rsp = await client.delete(f"/users/{created['id']}")
+    delete_rsp = await authorized_client.delete(f"/users/{created['id']}")
 
     assert delete_rsp.status_code == 204
     assert delete_rsp.content == b""
@@ -56,13 +94,13 @@ async def test_users_resource_supports_standard_restful_crud(client, db_session)
     assert deleted is None
 
 
-async def test_patch_user_rejects_explicit_null_for_energy(client, db_session):
+async def test_patch_user_rejects_explicit_null_for_energy(authorized_client, db_session):
     target = await account_service.create_account(
         db_session, username="patch-null-energy", password="secret", energy=42
     )
     await db_session.commit()
 
-    rsp = await client.patch(f"/users/{target.id}", json={"energy": None})
+    rsp = await authorized_client.patch(f"/users/{target.id}", json={"energy": None})
 
     assert rsp.status_code == 422
     body = rsp.json()
@@ -70,13 +108,13 @@ async def test_patch_user_rejects_explicit_null_for_energy(client, db_session):
     assert any(issue["loc"] == ["body", "energy"] for issue in body["data"])
 
 
-async def test_patch_user_rejects_explicit_null_for_username(client, db_session):
+async def test_patch_user_rejects_explicit_null_for_username(authorized_client, db_session):
     target = await account_service.create_account(
         db_session, username="patch-null-username", password="secret", energy=10
     )
     await db_session.commit()
 
-    rsp = await client.patch(f"/users/{target.id}", json={"username": None})
+    rsp = await authorized_client.patch(f"/users/{target.id}", json={"username": None})
 
     assert rsp.status_code == 422
     body = rsp.json()

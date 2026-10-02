@@ -11,41 +11,17 @@ from starlette.concurrency import run_in_threadpool
 
 from app.utils import pretty_data
 
+SENSITIVE_FIELDS = frozenset({"password", "token", "access_token", "refresh_token", "secret_key", "authorization"})
 
-def _patch_loguru_pretty() -> None:
-    """Auto pretty-print non-str first arg of logger.info/debug/... via pretty_data."""
-    LoggerCls = type(logger)
-    if getattr(LoggerCls, "_pretty_data_patched", False):
-        return
 
-    def make_wrapper(orig):
-        @wraps(orig)
-        def wrapper(self, __message, *args, **kwargs):
-            if not isinstance(__message, str):
-                __message = pretty_data(__message)
-            if args:
-                args = tuple(pretty_data(a) if isinstance(a, (dict, list)) else a for a in args)
-            exception, depth, record, lazy, colors, raw, capture, _, _ = self._options
-            return orig(
-                self.opt(
-                    exception=exception,
-                    depth=depth + 1,
-                    record=record,
-                    lazy=lazy,
-                    colors=colors,
-                    raw=raw,
-                    capture=capture,
-                ),
-                __message,
-                *args,
-                **kwargs,
-            )
-
-        return wrapper
-
-    for name in ("trace", "debug", "info", "success", "warning", "error", "critical", "exception"):
-        setattr(LoggerCls, name, make_wrapper(getattr(LoggerCls, name)))
-    LoggerCls._pretty_data_patched = True
+def redact_data(data: Any) -> Any:
+    if isinstance(data, dict):
+        return {
+            key: "***" if str(key).casefold() in SENSITIVE_FIELDS else redact_data(value) for key, value in data.items()
+        }
+    if isinstance(data, list):
+        return [redact_data(value) for value in data]
+    return data
 
 
 class InterceptHandler(logging.Handler):
@@ -69,7 +45,6 @@ class InterceptHandler(logging.Handler):
 
 
 def setup_logging() -> None:
-    _patch_loguru_pretty()
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
     # for name in ("uvicorn.error", "uvicorn.access"):
@@ -104,11 +79,11 @@ def log_request(endpoint: Callable[..., Any] | None = None) -> Callable[..., Any
             request: Request = kwargs.pop(request_name) if injected else kwargs[request_name]
             method, path = request.method, request.url.path
             if request.query_params:
-                logger.info("{} {} query: {}", method, path, dict(request.query_params))
+                logger.info("{} {} query: {}", method, path, pretty_data(redact_data(dict(request.query_params))))
             if method in {"POST", "PUT", "PATCH"}:
                 body_bytes = await request.body()
                 try:
-                    logger.info("{} {} body: {}", method, path, json.loads(body_bytes))
+                    logger.info("{} {} body: {}", method, path, pretty_data(redact_data(json.loads(body_bytes))))
                 except json.JSONDecodeError:
                     logger.info("{} {} body (non-JSON)", method, path)
             if is_coroutine:

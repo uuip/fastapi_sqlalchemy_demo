@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status
 
 from app.core.exceptions import ApiException
-from app.deps import OffsetPage, OffsetPageDep, SessionDep
-from app.schemas.response import default_router_responses, error_response
+from app.deps import OffsetPage, OffsetPageDep, SessionDep, user_dep
+from app.schemas.response import default_router_responses, error_response, openapi_error_example
 from app.schemas.user import UserCreate, UserOut, UserPatch, UserUpdate
 from app.services import account as account_service
 
@@ -17,6 +17,16 @@ users_api = APIRouter(
         ),
     },
 )
+
+auth_responses = {
+    status.HTTP_401_UNAUTHORIZED: error_response(
+        status.HTTP_401_UNAUTHORIZED,
+        examples={
+            "missing_credentials": {"value": openapi_error_example(401, "Not authenticated")},
+            "invalid_credentials": {"value": openapi_error_example(401, "Could not validate credentials")},
+        },
+    ),
+}
 
 
 @users_api.get("", response_model=OffsetPage[UserOut], summary="List users")
@@ -44,7 +54,9 @@ async def create_user(body: UserCreate, s: SessionDep):
     return user
 
 
-@users_api.put("/{user_id}", response_model=UserOut, summary="Replace user")
+@users_api.put(
+    "/{user_id}", response_model=UserOut, dependencies=[user_dep], responses=auth_responses, summary="Replace user"
+)
 async def replace_user(user_id: int, body: UserUpdate, s: SessionDep):
     user = await account_service.update_account(s, account_id=user_id, fields=body.model_dump())
     if user is None:
@@ -53,7 +65,13 @@ async def replace_user(user_id: int, body: UserUpdate, s: SessionDep):
     return user
 
 
-@users_api.patch("/{user_id}", response_model=UserOut, summary="Partial update user")
+@users_api.patch(
+    "/{user_id}",
+    response_model=UserOut,
+    dependencies=[user_dep],
+    responses=auth_responses,
+    summary="Partial update user",
+)
 async def patch_user(user_id: int, body: UserPatch, s: SessionDep):
     user = await account_service.update_account(s, account_id=user_id, fields=body.model_dump(exclude_unset=True))
     if user is None:
@@ -62,7 +80,13 @@ async def patch_user(user_id: int, body: UserPatch, s: SessionDep):
     return user
 
 
-@users_api.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete user")
+@users_api.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[user_dep],
+    responses=auth_responses,
+    summary="Delete user",
+)
 async def delete_user(user_id: int, s: SessionDep):
     deleted = await account_service.delete_account(s, account_id=user_id)
     if not deleted:

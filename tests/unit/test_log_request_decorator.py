@@ -94,7 +94,7 @@ async def test_log_request_supports_bare_decorator(monkeypatch: pytest.MonkeyPat
 
     assert response.status_code == 200
     assert response.json() == {"name": "Alice"}
-    assert messages == [("{} {} body: {}", ("POST", "/bare", {"name": "Alice"}))]
+    assert messages == [("{} {} body: {}", ("POST", "/bare", "{'name': 'Alice'}"))]
 
 
 async def test_log_request_above_route_decorator_does_not_wrap_registered_endpoint(monkeypatch: pytest.MonkeyPatch):
@@ -118,7 +118,7 @@ async def test_log_request_supports_factory_decorator_and_dependencies(monkeypat
 
     assert response.status_code == 200
     assert response.json() == {"name": "Bob", "marker": "ok"}
-    assert messages == [("{} {} body: {}", ("POST", "/factory", {"name": "Bob"}))]
+    assert messages == [("{} {} body: {}", ("POST", "/factory", "{'name': 'Bob'}"))]
 
 
 async def test_log_request_factory_above_route_decorator_does_not_wrap_registered_endpoint(
@@ -167,7 +167,7 @@ async def test_log_request_logs_get_query_params(monkeypatch: pytest.MonkeyPatch
         response = await client.get("/decorated-get", params={"q": "hello", "page": "2"})
 
     assert response.status_code == 200
-    assert messages == [("{} {} query: {}", ("GET", "/decorated-get", {"q": "hello", "page": "2"}))]
+    assert messages == [("{} {} query: {}", ("GET", "/decorated-get", "{'q': 'hello', 'page': '2'}"))]
 
 
 async def test_log_request_supports_sync_routes(monkeypatch: pytest.MonkeyPatch):
@@ -179,7 +179,7 @@ async def test_log_request_supports_sync_routes(monkeypatch: pytest.MonkeyPatch)
 
     assert response.status_code == 200
     assert response.json() == {"name": "Dana"}
-    assert messages == [("{} {} body: {}", ("POST", "/sync", {"name": "Dana"}))]
+    assert messages == [("{} {} body: {}", ("POST", "/sync", "{'name': 'Dana'}"))]
 
 
 async def test_log_request_keeps_sync_routes_in_threadpool(monkeypatch: pytest.MonkeyPatch):
@@ -203,7 +203,7 @@ async def test_log_request_reuses_explicit_request_param(monkeypatch: pytest.Mon
 
     assert response.status_code == 200
     assert response.json() == {"name": "Frank", "method": "POST"}
-    assert messages == [("{} {} body: {}", ("POST", "/with-request", {"name": "Frank"}))]
+    assert messages == [("{} {} body: {}", ("POST", "/with-request", "{'name': 'Frank'}"))]
 
 
 async def test_log_request_logs_delete_query_params(monkeypatch: pytest.MonkeyPatch):
@@ -215,7 +215,7 @@ async def test_log_request_logs_delete_query_params(monkeypatch: pytest.MonkeyPa
 
     assert response.status_code == 200
     assert response.json() == {"deleted": 42}
-    assert messages == [("{} {} query: {}", ("DELETE", "/items/42", {"force": "true"}))]
+    assert messages == [("{} {} query: {}", ("DELETE", "/items/42", "{'force': 'true'}"))]
 
 
 async def test_log_request_skips_delete_without_query(monkeypatch: pytest.MonkeyPatch):
@@ -239,6 +239,28 @@ async def test_log_request_logs_post_query_and_body(monkeypatch: pytest.MonkeyPa
     assert response.status_code == 200
     assert response.json() == {"name": "Gina"}
     assert messages == [
-        ("{} {} query: {}", ("POST", "/search", {"page": "2"})),
-        ("{} {} body: {}", ("POST", "/search", {"name": "Gina"})),
+        ("{} {} query: {}", ("POST", "/search", "{'page': '2'}")),
+        ("{} {} body: {}", ("POST", "/search", "{'name': 'Gina'}")),
     ]
+
+
+async def test_log_request_redacts_sensitive_fields_without_changing_the_request(monkeypatch: pytest.MonkeyPatch):
+    messages = []
+    app = make_app(messages, monkeypatch)
+    payload = {
+        "name": "visible-name",
+        "password": "BODY_SECRET",
+        "nested": [{"Access_Token": "NESTED_SECRET", "label": "visible-label"}],
+    }
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post("/search", params={"token": "QUERY_SECRET", "q": "visible-query"}, json=payload)
+
+    assert response.json() == {"name": "visible-name"}
+    assert len(messages) == 2
+    recorded = repr(messages)
+    assert all(secret not in recorded for secret in ("BODY_SECRET", "NESTED_SECRET", "QUERY_SECRET"))
+    assert "visible-name" in recorded
+    assert "visible-label" in recorded
+    assert "visible-query" in recorded
+    assert payload["password"] == "BODY_SECRET"

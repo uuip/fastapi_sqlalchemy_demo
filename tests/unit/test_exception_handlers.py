@@ -56,9 +56,7 @@ async def test_api_exception_handler():
         response = await client.get("/api-error")
 
     assert response.status_code == 404
-    body = response.json()
-    assert body["code"] == 404
-    assert body["msg"] == "resource not found"
+    assert response.json() == {"code": 404, "msg": "resource not found", "data": None}
 
 
 async def test_api_exception_default_status_code():
@@ -81,8 +79,28 @@ async def test_request_validation_error():
     body = response.json()
     assert body["code"] == 422
     assert body["msg"] == "Request validation error"
-    assert body["data"] is not None
-    assert len(body["data"]) > 0
+    assert len(body["data"]) == 1
+    assert body["data"][0]["type"] == "missing"
+    assert body["data"][0]["loc"] == ["body", "quantity"]
+    assert body["data"][0]["input"] == {"name": "test"}
+
+
+async def test_request_validation_error_is_logged_as_warning():
+    from loguru import logger
+
+    app = _make_app()
+    records = []
+    sink = logger.add(lambda message: records.append(message.record), format="{message}")
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/validation-error", json={"name": "test"})
+    finally:
+        logger.remove(sink)
+
+    assert response.status_code == 422
+    validation_records = [record for record in records if record["message"].startswith("Request validation error:")]
+    assert len(validation_records) == 1
+    assert validation_records[0]["level"].name == "WARNING"
 
 
 async def test_http_exception_handler_returns_error_response():
@@ -99,16 +117,24 @@ async def test_http_exception_handler_returns_error_response():
     assert response.json() == {"code": 404, "msg": "resource not found", "data": None}
 
 
-async def test_http_exception_handler_preserves_headers():
+@pytest.mark.parametrize(
+    "exc",
+    [
+        pytest.param(
+            HTTPException(401, "Could not validate credentials", headers={"WWW-Authenticate": "Bearer"}), id="http"
+        ),
+        pytest.param(
+            ApiException("Could not validate credentials", status_code=401, headers={"WWW-Authenticate": "Bearer"}),
+            id="business",
+        ),
+    ],
+)
+async def test_http_exception_handler_preserves_headers(exc):
     app = _make_app()
 
     @app.get("/http-error-with-headers")
     async def http_error_with_headers():
-        raise HTTPException(
-            status_code=401,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise exc
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/http-error-with-headers")
@@ -138,9 +164,7 @@ async def test_sqlalchemy_error():
         response = await client.get("/db-error")
 
     assert response.status_code == 500
-    body = response.json()
-    assert body["code"] == 500
-    assert body["msg"] == "Database operation failed"
+    assert response.json() == {"code": 500, "msg": "Database operation failed", "data": None}
 
 
 async def test_unhandled_exception_catch_all():
@@ -180,3 +204,32 @@ async def test_streaming_error_after_first_chunk_propagates():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         with pytest.raises(RuntimeError, match="mid-stream crash"):
             await client.get("/stream-crash")
+
+
+async def test_validation_errors_do_not_expose_passwords_in_logs_or_responses():
+    from loguru import logger
+
+    from app.schemas.auth import LoginRequest
+
+    app = FastAPI()
+    install_exception_handlers(app)
+
+    @app.post("/login-validation")
+    async def login_validation(body: LoginRequest):
+        return {"username": body.username}
+
+    password = "VALIDATION_SECRET_" + "x" * 128
+    messages = []
+    sink = logger.add(lambda message: messages.append(str(message)), format="{message}")
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post("/login-validation", json={"username": "alice", "password": password})
+    finally:
+        logger.remove(sink)
+
+    assert response.status_code == 422
+    assert password not in response.text
+    assert all(password not in message for message in messages)
+    issue = next(item for item in response.json()["data"] if item["loc"] == ["body", "password"])
+    assert issue["type"] == "string_too_long"
+    assert issue["input"] == "***"

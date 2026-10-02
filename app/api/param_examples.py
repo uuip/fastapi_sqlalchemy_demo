@@ -53,8 +53,8 @@ async def query_params(
 
 @example_api.get("/query-model")
 async def query_model(
-    query: Annotated[Pagination, Depends()], q4: Item = Depends()
-) -> tuple[Pagination, Item]:  # noqa: B008
+    query: Annotated[Pagination, Depends()], q4: Item = Depends()  # noqa: B008
+) -> tuple[Pagination, Item]:
     return query, q4
 
 

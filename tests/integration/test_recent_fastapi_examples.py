@@ -63,3 +63,14 @@ async def test_sse_progress_resumes_from_last_event_id(client):
     assert "id: 9" in rsp.text
     assert "id: 8" not in rsp.text
     assert "event: done" in rsp.text
+
+
+async def test_sse_reconnect_with_the_emitted_final_id_stops_reconnecting(client):
+    ending = await client.get("/stream/sse", headers={"Last-Event-ID": "10"})
+    assert ending.status_code == 200
+    final_id = next(line.removeprefix("id: ") for line in ending.text.splitlines() if line.startswith("id: "))
+
+    response = await client.get("/stream/sse", headers={"Last-Event-ID": final_id})
+
+    assert response.status_code == 204
+    assert response.content == b""

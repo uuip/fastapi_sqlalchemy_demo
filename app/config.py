@@ -3,9 +3,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from pydantic import Field, computed_field, field_validator
+from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import make_url
 
 _env_file = Path(__file__).parent.parent / ".env"
 
@@ -29,19 +28,6 @@ class Settings(BaseSettings):
             "user": u.username,
             "password": u.password,
         }
-
-    @field_validator("db_url")
-    @classmethod
-    def inject_db_timezone(cls, v: str) -> str:
-        url = make_url(v)
-        backend = url.get_backend_name()
-        if backend == "mysql":
-            url = url.update_query_dict({"init_command": "SET time_zone = '+08:00'"})
-        elif backend in {"postgres", "postgresql", "kingbase"}:
-            url = url.update_query_dict({"options": "-c timezone=Asia/Shanghai"})
-        else:
-            return v
-        return url.render_as_string(hide_password=False)
 
 
 settings = Settings()

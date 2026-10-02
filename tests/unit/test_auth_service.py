@@ -1,3 +1,4 @@
+import threading
 from dataclasses import dataclass
 
 import pytest
@@ -124,3 +125,22 @@ async def test_authenticate_token_propagates_decode_errors_as_unauthorized(monke
         await auth_service.authenticate_token(session, "bad")
 
     assert exc_info.value.status_code == 401
+
+
+async def test_login_verifies_password_outside_the_event_loop(monkeypatch):
+    main_thread = threading.get_ident()
+    threads = []
+    real_check = UserStub.check_password
+
+    def record_verify_thread(self, password):
+        threads.append(threading.get_ident())
+        return real_check(self, password)
+
+    monkeypatch.setattr(UserStub, "check_password", record_verify_thread)
+    user = UserStub(id=1, username="thread-user", password=make_password("password"))
+
+    token = await auth_service.login_user(ScalarSession(user), username=user.username, password="password")
+
+    assert token.access_token
+    assert len(threads) == 1
+    assert threads[0] != main_thread

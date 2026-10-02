@@ -2,10 +2,10 @@ import asyncio
 import csv
 import io
 from collections.abc import AsyncIterable
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Header
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, Header
+from fastapi.responses import Response, StreamingResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from pydantic import BaseModel
 
@@ -62,10 +62,21 @@ class Progress(BaseModel):
     message: str
 
 
-@stream_api.get("/sse", response_class=EventSourceResponse)
+async def sse_resume(
+    response: Response,
+    last_event_id: Annotated[int | Literal["final"] | None, Header()] = None,
+) -> int | Literal["final"] | None:
+    if last_event_id == "final":
+        response.status_code = 204
+    return last_event_id
+
+
+@stream_api.get("/sse", response_class=EventSourceResponse, responses={204: {"description": "Stream completed"}})
 async def sse_progress(
-    last_event_id: Annotated[int | None, Header()] = None,
+    last_event_id: Annotated[int | Literal["final"] | None, Depends(sse_resume)],
 ) -> AsyncIterable[ServerSentEvent]:
+    if last_event_id == "final":
+        return
     start = last_event_id + 1 if last_event_id is not None else 1
     yield ServerSentEvent(comment="progress stream starts")
     for i in range(start, 11):

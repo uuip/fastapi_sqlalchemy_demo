@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 from typing import Any
 
@@ -25,7 +26,7 @@ async def login_user(s: AsyncSession, *, username: str, password: str) -> Token:
     user = await s.scalar(select(User).where(User.username == username))
     if not user:
         raise auth_exception
-    if not user.check_password(password):
+    if not await asyncio.to_thread(user.check_password, password):
         raise auth_exception
 
     token_expires = timedelta(days=settings.jwt_expire_days)

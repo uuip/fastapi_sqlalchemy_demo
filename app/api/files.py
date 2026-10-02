@@ -16,7 +16,7 @@ def _resolve_download_path(filename: str) -> Path:
     static_dir = STATIC_DIR.resolve()
     try:
         file_path = (static_dir / filename).resolve(strict=True)
-    except (FileNotFoundError, OSError):
+    except FileNotFoundError, OSError:
         raise ApiException(msg="File not found", status_code=status.HTTP_404_NOT_FOUND) from None
 
     if not file_path.is_relative_to(static_dir) or not file_path.is_file():
