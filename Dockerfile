@@ -31,5 +31,7 @@ COPY ./migrations migrations
 COPY ./alembic.ini alembic.ini
 COPY ./static static
 
-ENTRYPOINT [ "gunicorn", "app.main:app", "--pid", "pid", "--access-logfile", "-" ]
-CMD [ "--bind", "0.0.0.0:8000", "--worker-class", "uvicorn_worker.UvicornWorker", "--workers", "2", "--timeout", "1800" ]
+#ENTRYPOINT [ "gunicorn", "app.main:app", "--pid", "pid", "--access-logfile", "-" ]
+#CMD [ "--bind", "0.0.0.0:8000", "--worker-class", "uvicorn_worker.UvicornWorker", "--workers", "2", "--timeout", "1800" ]
+ENTRYPOINT ["uvicorn", "app.main:app"]
+CMD ["--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
