@@ -1,28 +1,29 @@
 resources:
   - deployment.yaml
+  - service.yaml
   - code-pvc.yaml
 
 patches:
-#  - patch: |
-#      apiVersion: apps/v1
-#      kind: Deployment
-#      metadata:
-#        name: backend
-#        namespace: honey
-#      spec:
-#        template:
-#          spec:
-#            containers:
-#              - name: backend
-#                volumeMounts:
-#                  - name: code
-#                    mountPath: /project/app/main.py
-#                    subPath: app/main.py
-#            volumes:
-#              - name: code
-#                hostPath:
-#                  path: /root/fastapi_sqlalchemy_demo
-#                  type: Directory
+  #  - patch: |
+  #      apiVersion: apps/v1
+  #      kind: Deployment
+  #      metadata:
+  #        name: backend
+  #        namespace: honey
+  #      spec:
+  #        template:
+  #          spec:
+  #            containers:
+  #              - name: backend
+  #                volumeMounts:
+  #                  - name: code
+  #                    mountPath: /project/app/main.py
+  #                    subPath: app/main.py
+  #            volumes:
+  #              - name: code
+  #                hostPath:
+  #                  path: /root/fastapi_sqlalchemy_demo
+  #                  type: Directory
 
   - patch: |
       apiVersion: apps/v1
