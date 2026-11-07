@@ -9,7 +9,9 @@ async_db_url = settings.db_url
 async_db: AsyncEngine = create_async_engine(
     async_db_url,
     echo=False,
-    pool_size=20,
+    pool_size=10,
+    max_overflow=5,
+    pool_timeout=5,
     pool_pre_ping=True,
     pool_recycle=1800,
 )
