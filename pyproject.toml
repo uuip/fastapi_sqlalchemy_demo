@@ -14,14 +14,16 @@ dependencies = [
     "loguru>=0.7.3",
     "rich>=15.0.0",
     "uvicorn>=0.54.0",
-#    "uvicorn-worker>=0.4.0",
-#    "gunicorn>=26.2.0",
+    #    "uvicorn-worker>=0.4.0",
+    #    "gunicorn>=26.2.0",
     "sqladmin>=0.32.0",
     "alembic>=1.20.0",
     "sqlalchemy[asyncio]>=2.1.6",
     "psycopg[binary]>=3.3.6",
     "pwdlib[argon2]>=0.3.1",
 ]
+
+exclude-dependencies = ["uvloop"]
 
 [tool.uv]
 package = false
@@ -49,7 +51,7 @@ ignore = [
     "RUF001", # ambiguous unicode in strings (Chinese punctuation is fine)
     "RUF002", # ambiguous unicode in docstrings
     "RUF003", # ambiguous unicode in comments
-    "PT022",  # prefer uniform yield-style fixtures even without teardown
+    "PT022", # prefer uniform yield-style fixtures even without teardown
 ]
 
 [tool.black]
